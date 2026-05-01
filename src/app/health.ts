@@ -1,23 +1,37 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { TagModule } from 'primeng/tag';
 import { HealthViewModel } from './health.service';
 
 @Component({
   selector: 'app-health',
+  imports: [ButtonModule, CardModule, TagModule],
   template: `
-    <div class="p-8 max-w-md mx-auto mt-10 bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl border border-gray-200">
-      <h2 class="text-2xl font-bold text-gray-800 mb-4">Backend Health Status</h2>
-      <div class="flex items-center space-x-4">
-        <span class="text-lg font-medium text-gray-600">Status:</span>
-        <span [class]="getStatusClass()">
-          {{ healthVm.status() }}
-        </span>
-      </div>
-      <button 
-        (click)="healthVm.checkHealth()"
-        class="mt-6 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
-        Refresh Status
-      </button>
-    </div>
+    <section class="px-4 py-10">
+      <p-card class="mx-auto block max-w-2xl">
+        <ng-template pTemplate="title">Backend Health Status</ng-template>
+        <ng-template pTemplate="content">
+          <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-center gap-3">
+              <span class="text-lg font-medium text-gray-600">Status</span>
+              <p-tag
+                [value]="healthVm.status()"
+                [severity]="statusSeverity()"
+                [rounded]="true"
+              />
+            </div>
+
+            <p-button
+              label="Refresh Status"
+              [loading]="isChecking()"
+              [disabled]="isChecking()"
+              (onClick)="healthVm.checkHealth()"
+            />
+          </div>
+        </ng-template>
+      </p-card>
+    </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -28,10 +42,14 @@ export class HealthComponent implements OnInit {
     this.healthVm.checkHealth();
   }
 
-  getStatusClass() {
+  isChecking() {
+    return this.healthVm.status() === 'Checking...';
+  }
+
+  statusSeverity(): 'success' | 'info' | 'danger' {
     const status = this.healthVm.status();
-    if (status === 'UP') return 'text-green-600 font-bold text-lg px-2 py-1 bg-green-100 rounded';
-    if (status === 'Checking...') return 'text-blue-600 font-bold text-lg';
-    return 'text-red-600 font-bold text-lg px-2 py-1 bg-red-100 rounded';
+    if (status === 'UP') return 'success';
+    if (status === 'Checking...') return 'info';
+    return 'danger';
   }
 }

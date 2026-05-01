@@ -1,12 +1,32 @@
-<nav class="bg-gray-800 p-4">
-  <div class="max-w-7xl mx-auto flex justify-between items-center">
-    <div class="text-white font-bold text-xl">MyTour App</div>
-    <div class="space-x-4">
-      <a routerLink="/" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Home</a>
-      <a routerLink="/health" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Backend Health</a>
-    </div>
-  </div>
-</nav>
+<p-toolbar class="app-toolbar" ariaLabelledBy="app-title">
+  <ng-template pTemplate="start">
+    <a id="app-title" routerLink="/" class="app-brand">MyTour App</a>
+  </ng-template>
+
+  <ng-template pTemplate="end">
+    <nav class="app-nav" aria-label="Primary navigation">
+      <a
+        pButton
+        routerLink="/"
+        routerLinkActive="active-route"
+        [routerLinkActiveOptions]="{ exact: true }"
+        [text]="true"
+        severity="secondary"
+      >
+        <span pButtonLabel>Home</span>
+      </a>
+      <a
+        pButton
+        routerLink="/health"
+        routerLinkActive="active-route"
+        [text]="true"
+        severity="secondary"
+      >
+        <span pButtonLabel>Backend Health</span>
+      </a>
+    </nav>
+  </ng-template>
+</p-toolbar>
 
 <main>
   <router-outlet />

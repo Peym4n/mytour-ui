@@ -1,0 +1,31 @@
+.app-toolbar {
+  display: block;
+  padding: 0.75rem 1rem 0;
+}
+
+:host ::ng-deep .app-toolbar .p-toolbar {
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+.app-brand {
+  color: var(--p-primary-color);
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.app-nav {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.active-route {
+  background: var(--p-primary-50);
+  color: var(--p-primary-700);
+}
+
+main {
+  min-height: calc(100vh - 5rem);
+}

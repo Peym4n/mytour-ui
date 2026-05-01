@@ -13,6 +13,8 @@ export class HealthViewModel {
   status = signal<string>('Checking...');
 
   checkHealth() {
+    this.status.set('Checking...');
+
     this.http.get<{status: string}>(this.apiUrl).subscribe({
       next: (res) => this.status.set(res.status),
       error: () => this.status.set('DOWN (Cannot reach backend)')
