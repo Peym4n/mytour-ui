@@ -32,6 +32,9 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Use the async pipe to handle observables
 - Do not assume globals like (`new Date()`) are available.
 - Use Tailwind CSS for structural layouts (grids, flexbox, spacing).
+- **Tailwind v4 Integration:** This project uses Tailwind CSS v4 with PostCSS. Tailwind is processed in parallel with SCSS via `src/tailwind.css`.
+  - Do NOT import Tailwind directly into SCSS files.
+  - When using `@apply` or Tailwind theme variables inside an SCSS file, you MUST add `@reference "../tailwind.css";` (adjust path as needed) at the top of the file to provide Tailwind context without re-importing the library.
 - Use SCSS (indented or standard) for highly custom, reusable web-UI component styling to keep utility classes manageable.
 
 ## Components & State Management
