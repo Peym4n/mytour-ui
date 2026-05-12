@@ -11,7 +11,7 @@ The app generates Angular environment files before `npm start` and `npm run buil
 Set `API_URL` to point the frontend at the backend API:
 
 ```bash
-API_URL=http://localhost:8080
+API_URL=http://localhost:8282
 ```
 
 If `API_URL` is not set, it defaults to `http://localhost:8080`.
@@ -32,6 +32,31 @@ npm start
 
 Open `http://localhost:4200`.
 
+## API Contract Sync
+
+The Spring Boot backend is the source of truth for API DTOs and endpoints. Generate the Angular API client from the backend OpenAPI contract:
+
+```bash
+API_URL=http://localhost:8282 npm run sync-api
+```
+
+PowerShell:
+
+```powershell
+$env:API_URL='http://localhost:8282'; npm run sync-api
+```
+
+This writes `openapi.json` and generated code in `src/app/api/generated`.
+
+Useful individual commands:
+
+```bash
+npm run download-api
+npm run generate-api
+```
+
+Do not manually edit generated files. See [api-contract-sync-workflow.md](api-contract-sync-workflow.md) for the full workflow.
+
 ## Docker Compose
 
 The recommended full-stack local setup is managed from the backend project:
@@ -46,8 +71,8 @@ That starts PostgreSQL, the Spring Boot backend, and this Angular frontend. The 
 Default URLs:
 
 * Frontend: `http://localhost:4200`
-* Backend API: `http://localhost:8080`
-* Backend health check: `http://localhost:8080/actuator/health`
+* Backend API: `http://localhost:8282`
+* Backend health check: `http://localhost:8282/actuator/health`
 
 ## Building
 

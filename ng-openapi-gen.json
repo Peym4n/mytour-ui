@@ -1,0 +1,9 @@
+{
+  "input": "openapi.json",
+  "output": "src/app/api/generated",
+  "services": true,
+  "promises": false,
+  "indexFile": true,
+  "removeStaleFiles": true,
+  "endOfLineStyle": "lf"
+}

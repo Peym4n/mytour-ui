@@ -8,7 +8,10 @@
     "prebuild": "node set-env.js",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "download-api": "node scripts/download-openapi.mjs",
+    "generate-api": "ng-openapi-gen",
+    "sync-api": "npm run download-api && npm run generate-api"
   },
   "private": true,
   "packageManager": "npm@11.3.0",
@@ -32,6 +35,7 @@
     "@tailwindcss/postcss": "^4.2.4",
     "autoprefixer": "^10.5.0",
     "jsdom": "^28.0.0",
+    "ng-openapi-gen": "^1.0.5",
     "postcss": "^8.5.13",
     "prettier": "^3.8.1",
     "tailwindcss": "^4.2.4",
