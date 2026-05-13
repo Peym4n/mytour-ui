@@ -7,6 +7,9 @@ This order is optimized for passing the intermediate hand-in first, then extendi
 - Backend: Java Spring Boot with a layered architecture: controller/presentation, business/service, data access/repository, domain/entity, DTO/mapper, configuration, and exception handling.
 - Frontend: Angular with MVVM-style separation, where components bind to view-model state and delegate data/backend calls to services.
 - Database: PostgreSQL accessed through JPA/Hibernate.
+- Database initialization: use Flyway versioned SQL migrations from `mytour-api/src/main/resources/db/migration`, instead of relying on Hibernate `ddl-auto=update` for schema creation.
+- O/R mapping: still use JPA/Hibernate for application persistence; migrations create/evolve the schema, while Hibernate maps entities to tables and validates the schema at startup.
+- JPA mode: use `spring.jpa.hibernate.ddl-auto=validate`, so the app fails early if the Flyway schema and JPA mappings diverge.
 - Database IDs: use numeric IDs, with security enforced through authenticated user ownership checks in the backend.
 - Database design source: design from `semester-project.md` and current requirements; ignore the old draft class diagram.
 - Core tables: `app_users`, `tours`, `tour_routes`, `tour_logs`, and `tour_log_weather`.
@@ -58,7 +61,10 @@ This order is optimized for passing the intermediate hand-in first, then extendi
    - Use numeric database IDs, but enforce security through authenticated user ownership checks on every tour/log query.
    - Keep the database model independent of the old draft class diagram.
 4. [x] Configure PostgreSQL through external configuration only: environment variables, `.env`, or application config templates without committed secrets.
-5. [x] Add migrations or clear database initialization strategy if used by the project.
+5. [x] Add Flyway migrations for database initialization.
+   - Current migration: `mytour-api/src/main/resources/db/migration/V1__init_schema.sql`.
+   - Hibernate is configured with `spring.jpa.hibernate.ddl-auto=validate`.
+   - Verified against a fresh PostgreSQL database: Flyway applied `V1__init_schema`, created `flyway_schema_history`, and Hibernate validation passed.
    - Target tables: `app_users`, `tours`, `tour_routes`, `tour_logs`, and `tour_log_weather`.
    - Store one cover image per tour as filesystem metadata/path fields on `tours`, not as binary data in PostgreSQL.
 6. [ ] Implement Tour CRUD through the full stack: Angular service, controller, business layer, DAL/repository, and database.
