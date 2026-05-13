@@ -50,8 +50,15 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 ## Services & APIs (OpenAPI & MVVM Integration)
 
 - **CRITICAL: Schema-Driven Development.** The application uses an OpenAPI generator to build the data access layer based on the backend repository's Swagger/OpenAPI spec.
-- **Do NOT manually create TypeScript interfaces for backend entities.** You must import the auto-generated DTOs and models (typically located in `src/app/api/models`).
-- **Do NOT manually write `HttpClient` calls (GET, POST, etc.).** You must inject the auto-generated backend services (typically located in `src/app/api/services`).
+- Generated API client files live in `src/app/api/generated` and are produced from `openapi.json` via `ng-openapi-gen.json`.
+- Do NOT manually edit anything in `src/app/api/generated`. If the contract is wrong, update the backend OpenAPI source or `ng-openapi-gen.json`, then regenerate.
+- Useful commands from `mytour-ui`:
+  - `npm run download-api` downloads the backend OpenAPI contract.
+  - `npm run generate-api` regenerates the Angular client.
+  - `npm run sync-api` downloads and regenerates in one step.
+- **Do NOT manually create TypeScript interfaces for backend entities.** Import the auto-generated DTOs and models from `src/app/api/generated` or `src/app/api/generated/models`.
+- **Do NOT manually write `HttpClient` calls (GET, POST, etc.).** Inject the auto-generated backend services from `src/app/api/generated` or `src/app/api/generated/services`.
+- The generated API root URL is configured in `src/app/app.config.ts` with `provideApiConfiguration(environment.apiUrl)`. Keep environment-based configuration instead of hardcoding backend URLs.
 - **ViewModel Integration:** Your custom ViewModels (Angular Services using Signals) should act as a middleman. They must inject the auto-generated OpenAPI services, execute the API calls, and map the returned generated models into local Signals for the components to consume.
 - Use the `providedIn: 'root'` option for your custom ViewModel services.
 - Use the `inject()` function instead of constructor injection for all dependencies (including the generated OpenAPI services).
