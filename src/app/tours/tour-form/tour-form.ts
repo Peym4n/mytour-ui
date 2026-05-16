@@ -4,11 +4,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 
+import { StatusMessageComponent } from '../../shared/status-message/status-message';
 import { TourFormViewModel } from './tour-form-view-model.service';
 
 @Component({
   selector: 'app-tour-form',
-  imports: [ReactiveFormsModule, RouterLink, ButtonModule, InputTextModule],
+  imports: [ReactiveFormsModule, RouterLink, ButtonModule, InputTextModule, StatusMessageComponent],
   templateUrl: './tour-form.html',
   styleUrl: './tour-form.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
