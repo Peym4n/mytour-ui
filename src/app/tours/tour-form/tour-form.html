@@ -1,0 +1,190 @@
+<section class="tour-form-shell">
+  <div class="form-toolbar">
+    <a pButton routerLink="/tours" severity="secondary" [text]="true">
+      <span pButtonLabel>Back to tours</span>
+    </a>
+  </div>
+
+  <header class="form-header">
+    <p>Tour Planner</p>
+    <h1>{{ tourFormVm.mode() === 'create' ? 'New tour' : 'Edit tour' }}</h1>
+  </header>
+
+  @if (tourFormVm.noticeMessage(); as noticeMessage) {
+    <div class="notice-banner" role="status">
+      {{ noticeMessage }}
+    </div>
+  }
+
+  @if (tourFormVm.errorMessage(); as errorMessage) {
+    <div class="error-banner" role="alert">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (tourFormVm.loading()) {
+    <div class="form-loading" aria-live="polite">Loading tour...</div>
+  } @else {
+    <form class="tour-form" [formGroup]="tourFormVm.form" (ngSubmit)="tourFormVm.submit()" novalidate>
+      <section class="form-section">
+        <h2>Basics</h2>
+
+        <label class="form-field">
+          <span>Name</span>
+          <input
+            pInputText
+            type="text"
+            formControlName="name"
+            maxlength="120"
+            [attr.aria-invalid]="tourFormVm.controlInvalid('name')"
+          />
+          @if (tourFormVm.controlError('name'); as message) {
+            <small>{{ message }}</small>
+          }
+        </label>
+
+        <label class="form-field">
+          <span>Description</span>
+          <textarea
+            formControlName="description"
+            rows="5"
+            maxlength="5000"
+            [attr.aria-invalid]="tourFormVm.controlInvalid('description')"
+          ></textarea>
+          @if (tourFormVm.controlError('description'); as message) {
+            <small>{{ message }}</small>
+          }
+        </label>
+
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Transport type</span>
+            <select formControlName="transportType" [attr.aria-invalid]="tourFormVm.controlInvalid('transportType')">
+              @for (option of tourFormVm.transportOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+            @if (tourFormVm.controlError('transportType'); as message) {
+              <small>{{ message }}</small>
+            }
+          </label>
+
+          <label class="form-field">
+            <span>Timezone</span>
+            <input
+              pInputText
+              type="text"
+              formControlName="timezoneId"
+              maxlength="64"
+              [attr.aria-invalid]="tourFormVm.controlInvalid('timezoneId')"
+            />
+            @if (tourFormVm.controlError('timezoneId'); as message) {
+              <small>{{ message }}</small>
+            }
+          </label>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h2>Route</h2>
+
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Start location</span>
+            <input
+              pInputText
+              type="text"
+              formControlName="startLocation"
+              maxlength="255"
+              [attr.aria-invalid]="tourFormVm.controlInvalid('startLocation')"
+            />
+            @if (tourFormVm.controlError('startLocation'); as message) {
+              <small>{{ message }}</small>
+            }
+          </label>
+
+          <label class="form-field">
+            <span>End location</span>
+            <input
+              pInputText
+              type="text"
+              formControlName="endLocation"
+              maxlength="255"
+              [attr.aria-invalid]="tourFormVm.controlInvalid('endLocation')"
+            />
+            @if (tourFormVm.controlError('endLocation'); as message) {
+              <small>{{ message }}</small>
+            }
+          </label>
+        </div>
+
+        <div class="form-grid form-grid--coordinates">
+          <label class="form-field">
+            <span>Start latitude</span>
+            <input
+              pInputText
+              type="number"
+              step="0.0001"
+              formControlName="startLatitude"
+              [attr.aria-invalid]="tourFormVm.controlInvalid('startLatitude')"
+            />
+            @if (tourFormVm.controlError('startLatitude'); as message) {
+              <small>{{ message }}</small>
+            }
+          </label>
+
+          <label class="form-field">
+            <span>Start longitude</span>
+            <input
+              pInputText
+              type="number"
+              step="0.0001"
+              formControlName="startLongitude"
+              [attr.aria-invalid]="tourFormVm.controlInvalid('startLongitude')"
+            />
+            @if (tourFormVm.controlError('startLongitude'); as message) {
+              <small>{{ message }}</small>
+            }
+          </label>
+
+          <label class="form-field">
+            <span>End latitude</span>
+            <input
+              pInputText
+              type="number"
+              step="0.0001"
+              formControlName="endLatitude"
+              [attr.aria-invalid]="tourFormVm.controlInvalid('endLatitude')"
+            />
+            @if (tourFormVm.controlError('endLatitude'); as message) {
+              <small>{{ message }}</small>
+            }
+          </label>
+
+          <label class="form-field">
+            <span>End longitude</span>
+            <input
+              pInputText
+              type="number"
+              step="0.0001"
+              formControlName="endLongitude"
+              [attr.aria-invalid]="tourFormVm.controlInvalid('endLongitude')"
+            />
+            @if (tourFormVm.controlError('endLongitude'); as message) {
+              <small>{{ message }}</small>
+            }
+          </label>
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <button pButton type="submit" [loading]="tourFormVm.saving()" [disabled]="tourFormVm.saving()">
+          <span pButtonLabel>{{ tourFormVm.mode() === 'create' ? 'Create tour' : 'Save changes' }}</span>
+        </button>
+        <a pButton routerLink="/tours" severity="secondary" [outlined]="true">
+          <span pButtonLabel>Cancel</span>
+        </a>
+      </div>
+    </form>
+  }
+</section>
