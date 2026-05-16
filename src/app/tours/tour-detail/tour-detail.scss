@@ -166,11 +166,7 @@ dd {
   overflow: hidden;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
-  background:
-    linear-gradient(90deg, rgba(15, 23, 42, 0.08) 1px, transparent 1px),
-    linear-gradient(rgba(15, 23, 42, 0.08) 1px, transparent 1px),
-    linear-gradient(135deg, #ecfeff, #f7fee7 48%, #fff7ed);
-  background-size: 2.5rem 2.5rem, 2.5rem 2.5rem, cover;
+  background: linear-gradient(135deg, #ecfeff, #f7fee7 48%, #fff7ed);
 }
 
 .map-line {
@@ -229,8 +225,9 @@ dd {
 
 .log-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(17rem, 24rem);
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 24rem) max-content;
   gap: 1rem;
+  align-items: start;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 1rem;
@@ -274,6 +271,17 @@ dd {
   dd {
     text-align: left;
   }
+
+  .log-row__actions {
+    justify-content: flex-start;
+  }
+}
+
+.log-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
 }
 
 .empty-logs {
