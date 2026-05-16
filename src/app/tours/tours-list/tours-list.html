@@ -75,15 +75,15 @@
     </form>
 
     @if (tourVm.noticeMessage(); as noticeMessage) {
-      <div class="notice-banner" role="status">
+      <app-status-message variant="notice" [spaced]="true">
         {{ noticeMessage }}
-      </div>
+      </app-status-message>
     }
 
     @if (tourVm.errorMessage(); as errorMessage) {
-      <div class="error-banner" role="alert">
+      <app-status-message variant="error" [spaced]="true">
         {{ errorMessage }}
-      </div>
+      </app-status-message>
     }
 
     <div class="list-meta" aria-live="polite">
