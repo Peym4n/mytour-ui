@@ -1,0 +1,179 @@
+<section class="tour-detail-shell">
+  <div class="detail-toolbar">
+    <a pButton routerLink="/tours" severity="secondary" [text]="true">
+      <span pButtonLabel>Back to tours</span>
+    </a>
+
+    <div class="detail-toolbar__actions">
+      <button pButton type="button" class="p-button-sm" severity="secondary" [outlined]="true" disabled>
+        <span pButtonLabel>Edit</span>
+      </button>
+      <button pButton type="button" class="p-button-sm" severity="danger" [outlined]="true" disabled>
+        <span pButtonLabel>Delete</span>
+      </button>
+    </div>
+  </div>
+
+  @if (tourVm.noticeMessage(); as noticeMessage) {
+    <div class="notice-banner" role="status">
+      {{ noticeMessage }}
+    </div>
+  }
+
+  @if (tourVm.errorMessage(); as errorMessage) {
+    <div class="error-banner" role="alert">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (tourVm.loading()) {
+    <div class="detail-loading" aria-live="polite">Loading tour...</div>
+  } @else if (tourVm.tour(); as tour) {
+    <header class="detail-header">
+      <div>
+        <p-tag
+          [value]="tourVm.transportLabel(tour.transportType)"
+          [severity]="tourVm.transportSeverity(tour.transportType)"
+          [rounded]="true"
+        />
+        <h1>{{ tour.name || 'Untitled tour' }}</h1>
+        <p>{{ tour.description || 'No description stored.' }}</p>
+      </div>
+
+      <dl class="detail-stats">
+        <div>
+          <dt>Distance</dt>
+          <dd>{{ tourVm.formatDistance(tour.plannedDistanceM) }}</dd>
+        </div>
+        <div>
+          <dt>Estimated time</dt>
+          <dd>{{ tourVm.formatDuration(tour.estimatedDurationS) }}</dd>
+        </div>
+        <div>
+          <dt>Timezone</dt>
+          <dd>{{ tour.timezoneId || 'n/a' }}</dd>
+        </div>
+      </dl>
+    </header>
+
+    <section class="detail-grid">
+      <article class="detail-section">
+        <h2>Tour Data</h2>
+        <dl class="detail-rows">
+          <div>
+            <dt>From</dt>
+            <dd>{{ tour.startLocation || 'n/a' }}</dd>
+          </div>
+          <div>
+            <dt>To</dt>
+            <dd>{{ tour.endLocation || 'n/a' }}</dd>
+          </div>
+          <div>
+            <dt>Transport type</dt>
+            <dd>{{ tourVm.transportLabel(tour.transportType) }}</dd>
+          </div>
+          <div>
+            <dt>Created</dt>
+            <dd>{{ tourVm.formatDateTime(tour.createdAt) }}</dd>
+          </div>
+          <div>
+            <dt>Updated</dt>
+            <dd>{{ tourVm.formatDateTime(tour.updatedAt) }}</dd>
+          </div>
+        </dl>
+      </article>
+
+      <article class="detail-section">
+        <h2>Computed Attributes</h2>
+        <dl class="detail-rows">
+          <div>
+            <dt>Logs</dt>
+            <dd>{{ tour.computedAttributes?.logCount ?? 0 }}</dd>
+          </div>
+          <div>
+            <dt>Popularity</dt>
+            <dd>{{ tour.computedAttributes?.popularityLabel || 'n/a' }}</dd>
+          </div>
+          <div>
+            <dt>Popularity score</dt>
+            <dd>{{ tour.computedAttributes?.popularityScore ?? 'n/a' }}</dd>
+          </div>
+          <div>
+            <dt>Family suitability</dt>
+            <dd>{{ tour.computedAttributes?.childFriendlinessLabel || 'n/a' }}</dd>
+          </div>
+          <div>
+            <dt>Family score</dt>
+            <dd>{{ tour.computedAttributes?.childFriendlinessScore ?? 'n/a' }}</dd>
+          </div>
+        </dl>
+      </article>
+
+      <article class="detail-section">
+        <h2>Cover Image</h2>
+        @if (tour.coverImage; as coverImage) {
+          <div class="image-field">
+            <div class="image-field__preview" aria-hidden="true">
+              <span>{{ coverImage.originalFilename?.slice(0, 2) || 'IM' }}</span>
+            </div>
+            <dl class="detail-rows">
+              <div>
+                <dt>File</dt>
+                <dd>{{ coverImage.originalFilename || 'n/a' }}</dd>
+              </div>
+              <div>
+                <dt>Type</dt>
+                <dd>{{ coverImage.contentType || 'n/a' }}</dd>
+              </div>
+              <div>
+                <dt>Size</dt>
+                <dd>{{ tourVm.formatBytes(coverImage.sizeBytes) }}</dd>
+              </div>
+              <div>
+                <dt>Path</dt>
+                <dd>{{ coverImage.path || 'n/a' }}</dd>
+              </div>
+            </dl>
+          </div>
+        } @else {
+          <p class="muted-copy">No cover image stored.</p>
+        }
+      </article>
+
+      <article class="detail-section detail-section--map">
+        <h2>Route Map</h2>
+        <div class="map-placeholder" aria-label="Route map preview">
+          <span class="map-pin map-pin--start"></span>
+          <span class="map-line"></span>
+          <span class="map-pin map-pin--end"></span>
+        </div>
+        @if (tour.route; as route) {
+          <dl class="detail-rows">
+            <div>
+              <dt>Source</dt>
+              <dd>{{ route.routeSource || 'n/a' }}</dd>
+            </div>
+            <div>
+              <dt>Profile</dt>
+              <dd>{{ route.routeProfile || 'n/a' }}</dd>
+            </div>
+            <div>
+              <dt>Start coordinate</dt>
+              <dd>{{ tourVm.formatCoordinate(route.startCoordinate?.latitude, route.startCoordinate?.longitude) }}</dd>
+            </div>
+            <div>
+              <dt>End coordinate</dt>
+              <dd>{{ tourVm.formatCoordinate(route.endCoordinate?.latitude, route.endCoordinate?.longitude) }}</dd>
+            </div>
+            <div>
+              <dt>Fetched</dt>
+              <dd>{{ tourVm.formatDateTime(route.routeFetchedAt) }}</dd>
+            </div>
+          </dl>
+        } @else {
+          <p class="muted-copy">No route data stored.</p>
+        }
+      </article>
+    </section>
+  }
+</section>
