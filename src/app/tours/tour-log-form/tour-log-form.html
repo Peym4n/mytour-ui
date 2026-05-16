@@ -1,0 +1,128 @@
+<section class="tour-log-form-shell">
+  <div class="form-toolbar">
+    <a pButton [routerLink]="tourLogFormVm.backLink()" severity="secondary" [text]="true">
+      <span pButtonLabel>Back to tour</span>
+    </a>
+  </div>
+
+  <header class="form-header">
+    <p>Tour Planner</p>
+    <h1>{{ tourLogFormVm.mode() === 'create' ? 'New tour log' : 'Edit tour log' }}</h1>
+  </header>
+
+  @if (tourLogFormVm.noticeMessage(); as noticeMessage) {
+    <div class="notice-banner" role="status">
+      {{ noticeMessage }}
+    </div>
+  }
+
+  @if (tourLogFormVm.errorMessage(); as errorMessage) {
+    <div class="error-banner" role="alert">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (tourLogFormVm.loading()) {
+    <div class="form-loading" aria-live="polite">Loading tour log...</div>
+  } @else {
+    <form class="tour-log-form" [formGroup]="tourLogFormVm.form" (ngSubmit)="tourLogFormVm.submit()" novalidate>
+      <section class="form-section">
+        <h2>Accomplished Tour</h2>
+
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Performed at</span>
+            <input
+              pInputText
+              type="datetime-local"
+              formControlName="performedAt"
+              [attr.aria-invalid]="tourLogFormVm.controlInvalid('performedAt')"
+            />
+            @if (tourLogFormVm.controlError('performedAt'); as message) {
+              <small>{{ message }}</small>
+            }
+          </label>
+
+          <label class="form-field">
+            <span>Total distance in meters</span>
+            <input
+              pInputText
+              type="number"
+              min="0"
+              step="1"
+              formControlName="totalDistanceM"
+              [attr.aria-invalid]="tourLogFormVm.controlInvalid('totalDistanceM')"
+            />
+            @if (tourLogFormVm.controlError('totalDistanceM'); as message) {
+              <small>{{ message }}</small>
+            }
+          </label>
+
+          <label class="form-field">
+            <span>Total time in seconds</span>
+            <input
+              pInputText
+              type="number"
+              min="1"
+              step="1"
+              formControlName="totalTimeS"
+              [attr.aria-invalid]="tourLogFormVm.controlInvalid('totalTimeS')"
+            />
+            @if (tourLogFormVm.controlError('totalTimeS'); as message) {
+              <small>{{ message }}</small>
+            }
+          </label>
+
+          <label class="form-field">
+            <span>Difficulty</span>
+            <select formControlName="difficulty" [attr.aria-invalid]="tourLogFormVm.controlInvalid('difficulty')">
+              @for (option of tourLogFormVm.difficultyOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+            @if (tourLogFormVm.controlError('difficulty'); as message) {
+              <small>{{ message }}</small>
+            }
+          </label>
+
+          <label class="form-field">
+            <span>Rating</span>
+            <select formControlName="rating" [attr.aria-invalid]="tourLogFormVm.controlInvalid('rating')">
+              @for (option of tourLogFormVm.ratingOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+            @if (tourLogFormVm.controlError('rating'); as message) {
+              <small>{{ message }}</small>
+            }
+          </label>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h2>Comment</h2>
+        <label class="form-field">
+          <span>Notes</span>
+          <textarea
+            formControlName="comment"
+            rows="6"
+            maxlength="5000"
+            [attr.aria-invalid]="tourLogFormVm.controlInvalid('comment')"
+          ></textarea>
+          @if (tourLogFormVm.controlError('comment'); as message) {
+            <small>{{ message }}</small>
+          }
+        </label>
+      </section>
+
+      <div class="form-actions">
+        <button pButton type="submit" [loading]="tourLogFormVm.saving()" [disabled]="tourLogFormVm.saving()">
+          <span pButtonLabel>{{ tourLogFormVm.mode() === 'create' ? 'Create log' : 'Save changes' }}</span>
+        </button>
+        <a pButton [routerLink]="tourLogFormVm.backLink()" severity="secondary" [outlined]="true">
+          <span pButtonLabel>Cancel</span>
+        </a>
+      </div>
+    </form>
+  }
+</section>
