@@ -11,19 +11,19 @@
   </header>
 
   @if (tourLogFormVm.noticeMessage(); as noticeMessage) {
-    <div class="notice-banner" role="status">
+    <app-status-message variant="notice">
       {{ noticeMessage }}
-    </div>
+    </app-status-message>
   }
 
   @if (tourLogFormVm.errorMessage(); as errorMessage) {
-    <div class="error-banner" role="alert">
+    <app-status-message variant="error">
       {{ errorMessage }}
-    </div>
+    </app-status-message>
   }
 
   @if (tourLogFormVm.loading()) {
-    <div class="form-loading" aria-live="polite">Loading tour log...</div>
+    <app-status-message variant="loading">Loading tour log...</app-status-message>
   } @else {
     <form class="tour-log-form" [formGroup]="tourLogFormVm.form" (ngSubmit)="tourLogFormVm.submit()" novalidate>
       <section class="form-section">
