@@ -117,7 +117,8 @@ dd {
   gap: 1rem;
 }
 
-.detail-section {
+.detail-section,
+.logs-section {
   display: grid;
   gap: 1rem;
   align-content: start;
@@ -210,10 +211,89 @@ dd {
   color: #64748b;
 }
 
+.logs-section__header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+
+  p {
+    color: #64748b;
+  }
+}
+
+.logs-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.log-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 24rem);
+  gap: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.log-row__main {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+
+  time {
+    color: #0f172a;
+    font-weight: 850;
+  }
+
+  p,
+  span {
+    color: #64748b;
+    overflow-wrap: anywhere;
+  }
+
+  span {
+    font-size: 0.925rem;
+    font-weight: 700;
+  }
+}
+
+.log-row__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+
+  div {
+    display: grid;
+    gap: 0.15rem;
+    border-radius: 8px;
+    background: #f8fafc;
+    padding: 0.75rem;
+  }
+
+  dd {
+    text-align: left;
+  }
+}
+
+.empty-logs {
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 1.5rem;
+  color: #64748b;
+
+  h3 {
+    color: #0f172a;
+    font-weight: 850;
+  }
+}
+
 @media (max-width: 820px) {
   .detail-header,
   .detail-grid,
-  .image-field {
+  .image-field,
+  .log-row,
+  .log-row__facts {
     grid-template-columns: 1fr;
   }
 
