@@ -3,11 +3,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 
+import { StatusMessageComponent } from '../../shared/status-message/status-message';
 import { TourDetailViewModel } from './tour-detail-view-model.service';
 
 @Component({
   selector: 'app-tour-detail',
-  imports: [RouterLink, ButtonModule, TagModule],
+  imports: [RouterLink, ButtonModule, TagModule, StatusMessageComponent],
   templateUrl: './tour-detail.html',
   styleUrl: './tour-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
