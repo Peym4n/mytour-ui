@@ -12,6 +12,16 @@ export const toursRoutes: Routes = [
       import('./tour-form/tour-form').then((m) => m.TourFormComponent)
   },
   {
+    path: ':tourId/logs/new',
+    loadComponent: () =>
+      import('./tour-log-form/tour-log-form').then((m) => m.TourLogFormComponent)
+  },
+  {
+    path: ':tourId/logs/:logId/edit',
+    loadComponent: () =>
+      import('./tour-log-form/tour-log-form').then((m) => m.TourLogFormComponent)
+  },
+  {
     path: ':tourId',
     loadComponent: () =>
       import('./tour-detail/tour-detail').then((m) => m.TourDetailComponent)
