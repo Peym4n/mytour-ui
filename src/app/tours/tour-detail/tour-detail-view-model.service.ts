@@ -2,8 +2,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { take } from 'rxjs';
 
+import { TourLogDto } from '../../api/generated/models/tour-log-dto';
+import { TourLogsService } from '../../api/generated/services/tour-logs.service';
 import { TourDetailDto } from '../../api/generated/models/tour-detail-dto';
 import { ToursService } from '../../api/generated/services/tours.service';
+import { INTERMEDIATE_TOUR_LOGS } from '../shared/intermediate-tour-logs';
 import { INTERMEDIATE_TOUR_DETAILS } from '../shared/intermediate-tours';
 
 type TourTransportType = NonNullable<TourDetailDto['transportType']>;
@@ -14,14 +17,21 @@ type TagSeverity = 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contr
 })
 export class TourDetailViewModel {
   private readonly toursApi = inject(ToursService);
+  private readonly tourLogsApi = inject(TourLogsService);
   private readonly tourState = signal<TourDetailDto | null>(null);
+  private readonly logsState = signal<TourLogDto[]>([]);
   private readonly loadingState = signal(false);
+  private readonly logsLoadingState = signal(false);
   private readonly errorMessageState = signal<string | null>(null);
+  private readonly logsErrorMessageState = signal<string | null>(null);
   private readonly noticeMessageState = signal<string | null>(null);
 
   readonly tour = this.tourState.asReadonly();
+  readonly logs = this.logsState.asReadonly();
   readonly loading = this.loadingState.asReadonly();
+  readonly logsLoading = this.logsLoadingState.asReadonly();
   readonly errorMessage = this.errorMessageState.asReadonly();
+  readonly logsErrorMessage = this.logsErrorMessageState.asReadonly();
   readonly noticeMessage = this.noticeMessageState.asReadonly();
 
   readonly hasCoverImage = computed(() => Boolean(this.tourState()?.coverImage));
@@ -30,8 +40,10 @@ export class TourDetailViewModel {
   loadTour(tourId: number): void {
     this.loadingState.set(true);
     this.errorMessageState.set(null);
+    this.logsErrorMessageState.set(null);
     this.noticeMessageState.set(null);
     this.tourState.set(null);
+    this.logsState.set([]);
 
     this.toursApi.getTour({ tourId }).pipe(take(1)).subscribe({
       next: (response) => {
@@ -43,6 +55,7 @@ export class TourDetailViewModel {
 
           this.tourState.set(tour);
           this.loadingState.set(false);
+          this.loadLogs(tourId);
         }).catch(() => {
           this.useIntermediateTour(tourId);
         });
@@ -61,7 +74,9 @@ export class TourDetailViewModel {
 
   markInvalidTour(): void {
     this.tourState.set(null);
+    this.logsState.set([]);
     this.loadingState.set(false);
+    this.logsLoadingState.set(false);
     this.noticeMessageState.set(null);
     this.errorMessageState.set('The selected tour id is invalid.');
   }
@@ -139,6 +154,32 @@ export class TourDetailViewModel {
     return `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
   }
 
+  formatRating(rating: number | undefined): string {
+    return typeof rating === 'number' ? `${rating}/5` : 'n/a';
+  }
+
+  formatDifficulty(difficulty: number | undefined): string {
+    if (typeof difficulty !== 'number') {
+      return 'n/a';
+    }
+
+    const label = ['very easy', 'easy', 'moderate', 'hard', 'very hard'][difficulty - 1] ?? 'unknown';
+    return `${difficulty}/5, ${label}`;
+  }
+
+  formatWeather(log: TourLogDto): string {
+    const weather = log.weather;
+    if (!weather) {
+      return 'No weather snapshot';
+    }
+
+    const temperature = typeof weather.temperatureC === 'number' ? `${weather.temperatureC.toFixed(1)} deg C` : 'n/a';
+    const description = weather.weatherDescription ?? 'weather recorded';
+    const wind = typeof weather.windSpeedKmh === 'number' ? `${weather.windSpeedKmh.toFixed(1)} km/h wind` : 'wind n/a';
+
+    return `${temperature}, ${description}, ${wind}`;
+  }
+
   transportLabel(type: TourTransportType | undefined): string {
     switch (type) {
       case 'BIKE':
@@ -182,6 +223,43 @@ export class TourDetailViewModel {
     }
 
     this.noticeMessageState.set('The tour backend is not available yet. Showing intermediate tour data.');
+    this.useIntermediateLogs(tourId);
+  }
+
+  private loadLogs(tourId: number): void {
+    this.logsLoadingState.set(true);
+    this.logsErrorMessageState.set(null);
+
+    this.tourLogsApi.listLogs({ tourId }).pipe(take(1)).subscribe({
+      next: (response) => {
+        void this.resolveLogs(response).then((logs) => {
+          if (logs === null) {
+            this.useIntermediateLogs(tourId);
+            return;
+          }
+
+          this.logsState.set(this.sortLogs(logs));
+          this.logsLoadingState.set(false);
+        }).catch(() => {
+          this.useIntermediateLogs(tourId);
+        });
+      },
+      error: (error: unknown) => {
+        if (this.shouldUseIntermediateTour(error)) {
+          this.useIntermediateLogs(tourId);
+          return;
+        }
+
+        this.logsLoadingState.set(false);
+        this.logsErrorMessageState.set('Tour logs could not be loaded.');
+      }
+    });
+  }
+
+  private useIntermediateLogs(tourId: number): void {
+    this.logsState.set(this.sortLogs(INTERMEDIATE_TOUR_LOGS[tourId] ?? []));
+    this.logsLoadingState.set(false);
+    this.logsErrorMessageState.set(null);
   }
 
   private shouldUseIntermediateTour(error: unknown): boolean {
@@ -202,12 +280,42 @@ export class TourDetailViewModel {
     return this.extractTour(response);
   }
 
+  private async resolveLogs(response: unknown): Promise<TourLogDto[] | null> {
+    if (response instanceof Blob) {
+      const responseText = await response.text();
+      if (responseText.trim().length === 0) {
+        return [];
+      }
+
+      const parsedResponse: unknown = JSON.parse(responseText);
+      return this.extractLogs(parsedResponse);
+    }
+
+    return this.extractLogs(response);
+  }
+
   private extractTour(response: unknown): TourDetailDto | null {
     if (!this.isRecord(response)) {
       return null;
     }
 
     return response;
+  }
+
+  private extractLogs(response: unknown): TourLogDto[] | null {
+    return Array.isArray(response) ? response.filter(this.isTourLog) : null;
+  }
+
+  private isTourLog(value: unknown): value is TourLogDto {
+    return typeof value === 'object' && value !== null;
+  }
+
+  private sortLogs(logs: TourLogDto[]): TourLogDto[] {
+    return [...logs].sort((left, right) => {
+      const leftTime = left.performedAt ? new Date(left.performedAt).getTime() : 0;
+      const rightTime = right.performedAt ? new Date(right.performedAt).getTime() : 0;
+      return rightTime - leftTime;
+    });
   }
 
   private isRecord(value: unknown): value is Record<string, unknown> {
