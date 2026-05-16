@@ -22,6 +22,7 @@ export class TourDetailViewModel {
   private readonly logsState = signal<TourLogDto[]>([]);
   private readonly loadingState = signal(false);
   private readonly logsLoadingState = signal(false);
+  private readonly deletingLogIdState = signal<number | null>(null);
   private readonly errorMessageState = signal<string | null>(null);
   private readonly logsErrorMessageState = signal<string | null>(null);
   private readonly noticeMessageState = signal<string | null>(null);
@@ -30,6 +31,7 @@ export class TourDetailViewModel {
   readonly logs = this.logsState.asReadonly();
   readonly loading = this.loadingState.asReadonly();
   readonly logsLoading = this.logsLoadingState.asReadonly();
+  readonly deletingLogId = this.deletingLogIdState.asReadonly();
   readonly errorMessage = this.errorMessageState.asReadonly();
   readonly logsErrorMessage = this.logsErrorMessageState.asReadonly();
   readonly noticeMessage = this.noticeMessageState.asReadonly();
@@ -77,8 +79,40 @@ export class TourDetailViewModel {
     this.logsState.set([]);
     this.loadingState.set(false);
     this.logsLoadingState.set(false);
+    this.deletingLogIdState.set(null);
     this.noticeMessageState.set(null);
     this.errorMessageState.set('The selected tour id is invalid.');
+  }
+
+  deleteLog(tourId: number | undefined, logId: number | undefined): void {
+    this.logsErrorMessageState.set(null);
+    this.noticeMessageState.set(null);
+
+    if (!this.isPositiveInteger(tourId) || !this.isPositiveInteger(logId)) {
+      this.logsErrorMessageState.set('The selected tour log id is invalid.');
+      return;
+    }
+
+    this.deletingLogIdState.set(logId);
+
+    this.tourLogsApi.deleteLog({ tourId, logId }).pipe(take(1)).subscribe({
+      next: () => {
+        this.removeLog(logId);
+        this.deletingLogIdState.set(null);
+        this.noticeMessageState.set('Tour log deleted.');
+      },
+      error: (error: unknown) => {
+        if (this.shouldUseIntermediateTour(error)) {
+          this.removeLog(logId);
+          this.deletingLogIdState.set(null);
+          this.noticeMessageState.set('Backend unavailable. Removed this log from the intermediate view only.');
+          return;
+        }
+
+        this.deletingLogIdState.set(null);
+        this.logsErrorMessageState.set('Tour log could not be deleted.');
+      }
+    });
   }
 
   formatDistance(distanceM: number | undefined): string {
@@ -316,6 +350,14 @@ export class TourDetailViewModel {
       const rightTime = right.performedAt ? new Date(right.performedAt).getTime() : 0;
       return rightTime - leftTime;
     });
+  }
+
+  private removeLog(logId: number): void {
+    this.logsState.update((logs) => logs.filter((log) => log.id !== logId));
+  }
+
+  private isPositiveInteger(value: unknown): value is number {
+    return typeof value === 'number' && Number.isInteger(value) && value > 0;
   }
 
   private isRecord(value: unknown): value is Record<string, unknown> {
