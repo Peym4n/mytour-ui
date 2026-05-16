@@ -4,11 +4,12 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
 
+import { StatusMessageComponent } from '../../shared/status-message/status-message';
 import { TourTransportFilter, ToursListViewModel } from './tours-list-view-model.service';
 
 @Component({
   selector: 'app-tours-list',
-  imports: [RouterLink, ButtonModule, InputTextModule, TagModule],
+  imports: [RouterLink, ButtonModule, InputTextModule, TagModule, StatusMessageComponent],
   templateUrl: './tours-list.html',
   styleUrl: './tours-list.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
