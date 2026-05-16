@@ -21,19 +21,19 @@
   </div>
 
   @if (tourVm.noticeMessage(); as noticeMessage) {
-    <div class="notice-banner" role="status">
+    <app-status-message variant="notice">
       {{ noticeMessage }}
-    </div>
+    </app-status-message>
   }
 
   @if (tourVm.errorMessage(); as errorMessage) {
-    <div class="error-banner" role="alert">
+    <app-status-message variant="error">
       {{ errorMessage }}
-    </div>
+    </app-status-message>
   }
 
   @if (tourVm.loading()) {
-    <div class="detail-loading" aria-live="polite">Loading tour...</div>
+    <app-status-message variant="loading">Loading tour...</app-status-message>
   } @else if (tourVm.tour(); as tour) {
     <header class="detail-header">
       <div>
@@ -194,13 +194,13 @@
       </div>
 
       @if (tourVm.logsErrorMessage(); as logsErrorMessage) {
-        <div class="error-banner" role="alert">
+        <app-status-message variant="error">
           {{ logsErrorMessage }}
-        </div>
+        </app-status-message>
       }
 
       @if (tourVm.logsLoading()) {
-        <div class="detail-loading" aria-live="polite">Loading tour logs...</div>
+        <app-status-message variant="loading">Loading tour logs...</app-status-message>
       } @else if (tourVm.logs().length === 0) {
         <div class="empty-logs">
           <h3>No logs yet</h3>
