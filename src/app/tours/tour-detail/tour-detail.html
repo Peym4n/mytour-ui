@@ -5,9 +5,15 @@
     </a>
 
     <div class="detail-toolbar__actions">
-      <button pButton type="button" class="p-button-sm" severity="secondary" [outlined]="true" disabled>
-        <span pButtonLabel>Edit</span>
-      </button>
+      @if (tourVm.tour(); as toolbarTour) {
+        <a pButton class="p-button-sm" severity="secondary" [outlined]="true" [routerLink]="['/tours', toolbarTour.id, 'edit']">
+          <span pButtonLabel>Edit</span>
+        </a>
+      } @else {
+        <button pButton type="button" class="p-button-sm" severity="secondary" [outlined]="true" disabled>
+          <span pButtonLabel>Edit</span>
+        </button>
+      }
       <button pButton type="button" class="p-button-sm" severity="danger" [outlined]="true" disabled>
         <span pButtonLabel>Delete</span>
       </button>
