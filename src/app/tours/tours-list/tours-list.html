@@ -6,12 +6,18 @@
     </div>
 
     <div class="flex flex-wrap gap-2">
-      <button pButton type="button" class="p-button-sm" disabled>
+      <a pButton routerLink="/tours/new" class="p-button-sm">
         <span pButtonLabel>New tour</span>
-      </button>
-      <button pButton type="button" class="p-button-sm" severity="secondary" [outlined]="true" disabled>
-        <span pButtonLabel>Edit selected</span>
-      </button>
+      </a>
+      @if (tourVm.selectedTourId(); as selectedTourId) {
+        <a pButton class="p-button-sm" severity="secondary" [outlined]="true" [routerLink]="['/tours', selectedTourId, 'edit']">
+          <span pButtonLabel>Edit selected</span>
+        </a>
+      } @else {
+        <button pButton type="button" class="p-button-sm" severity="secondary" [outlined]="true" disabled>
+          <span pButtonLabel>Edit selected</span>
+        </button>
+      }
       <button
         pButton
         type="button"
@@ -170,9 +176,9 @@
         <a pButton class="p-button-sm" [routerLink]="['/tours', selectedTour.id]">
           <span pButtonLabel>Open details</span>
         </a>
-        <button pButton type="button" class="p-button-sm" severity="secondary" [outlined]="true" disabled>
+        <a pButton class="p-button-sm" severity="secondary" [outlined]="true" [routerLink]="['/tours', selectedTour.id, 'edit']">
           <span pButtonLabel>Edit</span>
-        </button>
+        </a>
         <button
           pButton
           type="button"
