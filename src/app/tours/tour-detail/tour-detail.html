@@ -181,5 +181,65 @@
         }
       </article>
     </section>
+
+    <section class="logs-section" aria-labelledby="tour-logs-title">
+      <div class="logs-section__header">
+        <div>
+          <h2 id="tour-logs-title">Tour Logs</h2>
+          <p>Accomplished statistics for this tour.</p>
+        </div>
+        <button pButton type="button" class="p-button-sm" disabled>
+          <span pButtonLabel>New log</span>
+        </button>
+      </div>
+
+      @if (tourVm.logsErrorMessage(); as logsErrorMessage) {
+        <div class="error-banner" role="alert">
+          {{ logsErrorMessage }}
+        </div>
+      }
+
+      @if (tourVm.logsLoading()) {
+        <div class="detail-loading" aria-live="polite">Loading tour logs...</div>
+      } @else if (tourVm.logs().length === 0) {
+        <div class="empty-logs">
+          <h3>No logs yet</h3>
+          <p>This tour has no accomplished tour statistics yet.</p>
+        </div>
+      } @else {
+        <div class="logs-list" aria-label="Tour logs">
+          @for (log of tourVm.logs(); track log.id ?? $index) {
+            <article class="log-row">
+              <div class="log-row__main">
+                <time [attr.datetime]="log.performedAt || null">
+                  {{ tourVm.formatDateTime(log.performedAt) }}
+                </time>
+                <p>{{ log.comment || 'No comment stored.' }}</p>
+                <span>{{ tourVm.formatWeather(log) }}</span>
+              </div>
+
+              <dl class="log-row__facts">
+                <div>
+                  <dt>Difficulty</dt>
+                  <dd>{{ tourVm.formatDifficulty(log.difficulty) }}</dd>
+                </div>
+                <div>
+                  <dt>Distance</dt>
+                  <dd>{{ tourVm.formatDistance(log.totalDistanceM) }}</dd>
+                </div>
+                <div>
+                  <dt>Time</dt>
+                  <dd>{{ tourVm.formatDuration(log.totalTimeS) }}</dd>
+                </div>
+                <div>
+                  <dt>Rating</dt>
+                  <dd>{{ tourVm.formatRating(log.rating) }}</dd>
+                </div>
+              </dl>
+            </article>
+          }
+        </div>
+      }
+    </section>
   }
 </section>
