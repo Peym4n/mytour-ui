@@ -34,8 +34,8 @@ This order is optimized for passing the intermediate hand-in first, then extendi
 2. [x] Define the frontend domain models for `Tour` and `TourLog`, including all required attributes from the spec.
 3. [x] Decide the intermediate data strategy: use Angular services with mock/in-memory data first, then connect the same service API to the backend once endpoints exist.
 4. [x] Build the main Angular shell: routing, navigation, shared layout, empty/error/loading states, and responsive structure.
-5. [ ] Implement the tours list view with selection, search/filter if cheap, and clear create/edit/delete actions.
-6. [ ] Implement the tour detail view showing all required tour attributes, including an image field and a map placeholder.
+5. [x] Implement the tours list view with selection, search/filter if cheap, and clear create/edit/delete actions.
+6. [x] Implement the tour detail view showing all required tour attributes, including an image field and a map placeholder.
 7. [ ] Implement tour create/edit forms with Angular validation and user-friendly validation messages.
 8. [ ] Implement the tour logs list for the selected tour, showing all required log attributes.
 9. [ ] Implement tour log create/edit/delete flows with validation and no-crash handling for invalid input.
