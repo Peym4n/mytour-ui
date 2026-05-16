@@ -1,0 +1,224 @@
+<section class="border-b border-slate-200 bg-white">
+  <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 lg:flex-row lg:items-end lg:justify-between">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">Tour Planner</p>
+      <h1 class="mt-1 text-3xl font-semibold text-slate-950">Tours</h1>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <button pButton type="button" class="p-button-sm" disabled>
+        <span pButtonLabel>New tour</span>
+      </button>
+      <button pButton type="button" class="p-button-sm" severity="secondary" [outlined]="true" disabled>
+        <span pButtonLabel>Edit selected</span>
+      </button>
+      <button
+        pButton
+        type="button"
+        class="p-button-sm"
+        severity="secondary"
+        [outlined]="true"
+        (click)="tourVm.loadTours()"
+        [disabled]="tourVm.loading()"
+      >
+        <span pButtonLabel>Refresh</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+  <div class="min-w-0">
+    <form class="tour-filter-bar" (submit)="$event.preventDefault(); tourVm.applyFilters()">
+      <label class="filter-field">
+        <span>Search</span>
+        <input
+          pInputText
+          type="search"
+          [value]="tourVm.searchQuery()"
+          (input)="onSearchInput($event)"
+          placeholder="Name, place, attribute"
+        />
+      </label>
+
+      <label class="filter-field filter-field--select">
+        <span>Transport</span>
+        <select [value]="tourVm.transportFilter()" (change)="onTransportChange($event)">
+          @for (option of tourVm.transportOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+
+      <div class="filter-actions">
+        <button pButton type="submit" class="p-button-sm" [disabled]="tourVm.loading()">
+          <span pButtonLabel>Apply</span>
+        </button>
+        <button
+          pButton
+          type="button"
+          class="p-button-sm"
+          severity="secondary"
+          [text]="true"
+          (click)="tourVm.clearFilters()"
+          [disabled]="!tourVm.hasFilters() || tourVm.loading()"
+        >
+          <span pButtonLabel>Clear</span>
+        </button>
+      </div>
+    </form>
+
+    @if (tourVm.noticeMessage(); as noticeMessage) {
+      <div class="notice-banner" role="status">
+        {{ noticeMessage }}
+      </div>
+    }
+
+    @if (tourVm.errorMessage(); as errorMessage) {
+      <div class="error-banner" role="alert">
+        {{ errorMessage }}
+      </div>
+    }
+
+    <div class="list-meta" aria-live="polite">
+      @if (tourVm.loading()) {
+        Loading tours...
+      } @else {
+        {{ tourVm.visibleTourCount() }} tours
+      }
+    </div>
+
+    @if (tourVm.loading() && tourVm.tours().length === 0) {
+      <div class="loading-panel" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    } @else if (tourVm.tours().length === 0) {
+      <div class="empty-panel">
+        <h2>No tours found</h2>
+        <p>Adjust the search or clear the filters.</p>
+      </div>
+    } @else {
+      <div class="tour-list" aria-label="Tours">
+        @for (tour of tourVm.tours(); track tour.id ?? $index) {
+          <button
+            type="button"
+            class="tour-row"
+            [class.is-selected]="tour.id === tourVm.selectedTourId()"
+            [attr.aria-pressed]="tour.id === tourVm.selectedTourId()"
+            (click)="tourVm.selectTour(tour.id)"
+          >
+            <span class="tour-row__main">
+              <span class="tour-row__title">{{ tour.name || 'Untitled tour' }}</span>
+              <span class="tour-row__route">
+                {{ tour.startLocation || 'Unknown start' }} to {{ tour.endLocation || 'unknown destination' }}
+              </span>
+            </span>
+
+            <span class="tour-row__facts">
+              <p-tag
+                [value]="tourVm.transportLabel(tour.transportType)"
+                [severity]="tourVm.transportSeverity(tour.transportType)"
+                [rounded]="true"
+              />
+              <span>{{ tourVm.formatDistance(tour.plannedDistanceM) }}</span>
+              <span>{{ tourVm.formatDuration(tour.estimatedDurationS) }}</span>
+            </span>
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  <aside class="selection-panel" aria-labelledby="selected-tour-title">
+    @if (tourVm.selectedTour(); as selectedTour) {
+      <div class="selection-panel__header">
+        <p-tag
+          [value]="tourVm.transportLabel(selectedTour.transportType)"
+          [severity]="tourVm.transportSeverity(selectedTour.transportType)"
+          [rounded]="true"
+        />
+        <h2 id="selected-tour-title">{{ selectedTour.name || 'Untitled tour' }}</h2>
+        <p>{{ selectedTour.startLocation || 'Unknown start' }} to {{ selectedTour.endLocation || 'unknown destination' }}</p>
+      </div>
+
+      <dl class="selection-facts">
+        <div>
+          <dt>Distance</dt>
+          <dd>{{ tourVm.formatDistance(selectedTour.plannedDistanceM) }}</dd>
+        </div>
+        <div>
+          <dt>Estimated time</dt>
+          <dd>{{ tourVm.formatDuration(selectedTour.estimatedDurationS) }}</dd>
+        </div>
+        <div>
+          <dt>Logs</dt>
+          <dd>{{ tourVm.formatLogCount(selectedTour) }}</dd>
+        </div>
+        <div>
+          <dt>Popularity</dt>
+          <dd>{{ selectedTour.computedAttributes?.popularityLabel || 'n/a' }}</dd>
+        </div>
+        <div>
+          <dt>Family suitability</dt>
+          <dd>{{ selectedTour.computedAttributes?.childFriendlinessLabel || 'n/a' }}</dd>
+        </div>
+      </dl>
+
+      <div class="selection-actions">
+        <a pButton class="p-button-sm" [routerLink]="['/tours', selectedTour.id]">
+          <span pButtonLabel>Open details</span>
+        </a>
+        <button pButton type="button" class="p-button-sm" severity="secondary" [outlined]="true" disabled>
+          <span pButtonLabel>Edit</span>
+        </button>
+        <button
+          pButton
+          type="button"
+          class="p-button-sm"
+          severity="danger"
+          [outlined]="true"
+          (click)="tourVm.requestDelete(selectedTour.id)"
+          [disabled]="tourVm.loading()"
+        >
+          <span pButtonLabel>Delete</span>
+        </button>
+      </div>
+
+      @if (tourVm.pendingDeleteTour(); as pendingTour) {
+        <div class="delete-panel" role="alert">
+          <p>Delete {{ pendingTour.name || 'this tour' }}?</p>
+          <div>
+            <button
+              pButton
+              type="button"
+              class="p-button-sm"
+              severity="danger"
+              (click)="tourVm.deletePendingTour()"
+              [disabled]="tourVm.loading()"
+            >
+              <span pButtonLabel>Delete tour</span>
+            </button>
+            <button
+              pButton
+              type="button"
+              class="p-button-sm"
+              severity="secondary"
+              [text]="true"
+              (click)="tourVm.cancelDelete()"
+              [disabled]="tourVm.loading()"
+            >
+              <span pButtonLabel>Cancel</span>
+            </button>
+          </div>
+        </div>
+      }
+    } @else {
+      <div class="empty-selection">
+        <h2 id="selected-tour-title">No tour selected</h2>
+        <p>Select a tour from the list.</p>
+      </div>
+    }
+  </aside>
+</section>
