@@ -1,0 +1,10 @@
+<div
+  class="status-message"
+  [class.status-message--notice]="variant() === 'notice'"
+  [class.status-message--error]="variant() === 'error'"
+  [class.status-message--loading]="variant() === 'loading'"
+  [attr.role]="role()"
+  [attr.aria-live]="ariaLive()"
+>
+  <ng-content />
+</div>
