@@ -18,33 +18,6 @@
   justify-content: space-between;
 }
 
-.notice-banner,
-.error-banner,
-.detail-loading {
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  font-size: 0.925rem;
-}
-
-.notice-banner {
-  border: 1px solid #fde68a;
-  background: #fffbeb;
-  color: #854d0e;
-}
-
-.error-banner {
-  border: 1px solid #fecaca;
-  background: #fef2f2;
-  color: #991b1b;
-}
-
-.detail-loading {
-  border: 1px dashed #cbd5e1;
-  background: #ffffff;
-  color: #475569;
-  font-weight: 700;
-}
-
 .detail-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
