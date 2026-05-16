@@ -38,7 +38,7 @@ This order is optimized for passing the intermediate hand-in first, then extendi
 6. [x] Implement the tour detail view showing all required tour attributes, including an image field and a map placeholder.
 7. [x] Implement tour create/edit forms with Angular validation and user-friendly validation messages.
 8. [x] Implement the tour logs list for the selected tour, showing all required log attributes.
-9. [ ] Implement tour log create/edit/delete flows with validation and no-crash handling for invalid input.
+9. [x] Implement tour log create/edit/delete flows with validation and no-crash handling for invalid input.
 10. [ ] Extract at least one reusable Angular UI component used in multiple places, for example a form field wrapper, detail row, confirmation dialog, or empty-state component.
 11. [x] Check MVVM-style separation: components bind to view-model state and delegate data operations to services instead of containing persistence logic directly.
 12. [x] Add a thin Spring Boot integration layer for intermediate safety: REST endpoints for tours and tour logs, even if backed by in-memory data for now.
