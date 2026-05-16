@@ -188,9 +188,9 @@
           <h2 id="tour-logs-title">Tour Logs</h2>
           <p>Accomplished statistics for this tour.</p>
         </div>
-        <button pButton type="button" class="p-button-sm" disabled>
+        <a pButton class="p-button-sm" [routerLink]="['/tours', tour.id, 'logs', 'new']">
           <span pButtonLabel>New log</span>
-        </button>
+        </a>
       </div>
 
       @if (tourVm.logsErrorMessage(); as logsErrorMessage) {
@@ -236,6 +236,40 @@
                   <dd>{{ tourVm.formatRating(log.rating) }}</dd>
                 </div>
               </dl>
+
+              <div class="log-row__actions">
+                @if (log.id; as logId) {
+                  <a
+                    pButton
+                    class="p-button-sm"
+                    severity="secondary"
+                    [outlined]="true"
+                    [routerLink]="['/tours', tour.id, 'logs', logId, 'edit']"
+                  >
+                    <span pButtonLabel>Edit</span>
+                  </a>
+                  <button
+                    pButton
+                    type="button"
+                    class="p-button-sm"
+                    severity="danger"
+                    [outlined]="true"
+                    [loading]="tourVm.deletingLogId() === logId"
+                    [disabled]="tourVm.deletingLogId() !== null"
+                    [attr.aria-label]="'Delete log from ' + tourVm.formatDateTime(log.performedAt)"
+                    (click)="tourVm.deleteLog(tour.id, logId)"
+                  >
+                    <span pButtonLabel>Delete</span>
+                  </button>
+                } @else {
+                  <button pButton type="button" class="p-button-sm" severity="secondary" [outlined]="true" disabled>
+                    <span pButtonLabel>Edit</span>
+                  </button>
+                  <button pButton type="button" class="p-button-sm" severity="danger" [outlined]="true" disabled>
+                    <span pButtonLabel>Delete</span>
+                  </button>
+                }
+              </div>
             </article>
           }
         </div>
