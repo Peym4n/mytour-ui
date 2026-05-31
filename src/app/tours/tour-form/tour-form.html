@@ -7,7 +7,7 @@
 
   <header class="form-header">
     <p>Tour Planner</p>
-    <h1>{{ tourFormVm.mode() === 'create' ? 'New tour' : 'Edit tour' }}</h1>
+    <h1>{{ tourFormVm.pageTitle() }}</h1>
   </header>
 
   @if (tourFormVm.noticeMessage(); as noticeMessage) {
@@ -179,7 +179,7 @@
 
       <div class="form-actions">
         <button pButton type="submit" [loading]="tourFormVm.saving()" [disabled]="tourFormVm.saving()">
-          <span pButtonLabel>{{ tourFormVm.mode() === 'create' ? 'Create tour' : 'Save changes' }}</span>
+          <span pButtonLabel>{{ tourFormVm.submitLabel() }}</span>
         </button>
         <a pButton routerLink="/tours" severity="secondary" [outlined]="true">
           <span pButtonLabel>Cancel</span>

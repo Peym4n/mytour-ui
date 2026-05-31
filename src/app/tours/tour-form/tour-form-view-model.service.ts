@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { NonNullableFormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { take } from 'rxjs';
@@ -45,6 +45,8 @@ export class TourFormViewModel {
   readonly saving = this.savingState.asReadonly();
   readonly errorMessage = this.errorMessageState.asReadonly();
   readonly noticeMessage = this.noticeMessageState.asReadonly();
+  readonly pageTitle = computed(() => this.modeState() === 'create' ? 'New tour' : 'Edit tour');
+  readonly submitLabel = computed(() => this.modeState() === 'create' ? 'Create tour' : 'Save changes');
 
   readonly transportOptions: ReadonlyArray<{ label: string; value: TourTransportType }> = [
     { label: 'Bike', value: 'BIKE' },

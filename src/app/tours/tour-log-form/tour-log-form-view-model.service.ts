@@ -41,6 +41,8 @@ export class TourLogFormViewModel {
   readonly saving = this.savingState.asReadonly();
   readonly errorMessage = this.errorMessageState.asReadonly();
   readonly noticeMessage = this.noticeMessageState.asReadonly();
+  readonly pageTitle = computed(() => this.modeState() === 'create' ? 'New tour log' : 'Edit tour log');
+  readonly submitLabel = computed(() => this.modeState() === 'create' ? 'Create log' : 'Save changes');
   readonly backLink = computed(() => {
     const tourId = this.tourIdState();
     return tourId === null ? ['/tours'] : ['/tours', tourId];

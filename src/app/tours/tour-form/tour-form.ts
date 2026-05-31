@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 
@@ -16,22 +17,25 @@ import { TourFormViewModel } from './tour-form-view-model.service';
 })
 export class TourFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly tourFormVm = inject(TourFormViewModel);
 
   ngOnInit(): void {
-    const tourIdParam = this.route.snapshot.paramMap.get('tourId');
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((paramMap) => {
+      const tourIdParam = paramMap.get('tourId');
 
-    if (tourIdParam === null) {
-      this.tourFormVm.initializeCreate();
-      return;
-    }
+      if (tourIdParam === null) {
+        this.tourFormVm.initializeCreate();
+        return;
+      }
 
-    const tourId = Number(tourIdParam);
-    if (!Number.isInteger(tourId) || tourId < 1) {
-      this.tourFormVm.markInvalidTour();
-      return;
-    }
+      const tourId = Number(tourIdParam);
+      if (!Number.isInteger(tourId) || tourId < 1) {
+        this.tourFormVm.markInvalidTour();
+        return;
+      }
 
-    this.tourFormVm.initializeEdit(tourId);
+      this.tourFormVm.initializeEdit(tourId);
+    });
   }
 }

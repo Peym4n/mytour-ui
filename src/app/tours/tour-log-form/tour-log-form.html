@@ -7,7 +7,7 @@
 
   <header class="form-header">
     <p>Tour Planner</p>
-    <h1>{{ tourLogFormVm.mode() === 'create' ? 'New tour log' : 'Edit tour log' }}</h1>
+    <h1>{{ tourLogFormVm.pageTitle() }}</h1>
   </header>
 
   @if (tourLogFormVm.noticeMessage(); as noticeMessage) {
@@ -117,7 +117,7 @@
 
       <div class="form-actions">
         <button pButton type="submit" [loading]="tourLogFormVm.saving()" [disabled]="tourLogFormVm.saving()">
-          <span pButtonLabel>{{ tourLogFormVm.mode() === 'create' ? 'Create log' : 'Save changes' }}</span>
+          <span pButtonLabel>{{ tourLogFormVm.submitLabel() }}</span>
         </button>
         <a pButton [routerLink]="tourLogFormVm.backLink()" severity="secondary" [outlined]="true">
           <span pButtonLabel>Cancel</span>
