@@ -5,13 +5,38 @@ import { SearchTours$Params } from '../../api/generated/fn/tours/search-tours';
 import { ToursService } from '../../api/generated/services/tours.service';
 import { TourSummaryDto } from '../../api/generated/models/tour-summary-dto';
 import { INTERMEDIATE_TOUR_DETAILS, toTourSummary } from '../shared/intermediate-tours';
+import {
+  formatDistance,
+  formatDuration,
+  formatLogCount,
+  routeLabel,
+  TagSeverity,
+  TourTransportType,
+  transportLabel,
+  transportSeverity
+} from '../shared/tour-display';
 
-type TourTransportType = NonNullable<TourSummaryDto['transportType']>;
 export type TourTransportFilter = TourTransportType | '';
 type TourDataSource = 'api' | 'intermediate';
-type TagSeverity = 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast';
 
 const INTERMEDIATE_TOURS = INTERMEDIATE_TOUR_DETAILS.map(toTourSummary);
+
+export interface TourListRow {
+  readonly tour: TourSummaryDto;
+  readonly trackId: number | string;
+  readonly id: number | undefined;
+  readonly name: string;
+  readonly route: string;
+  readonly distance: string;
+  readonly duration: string;
+  readonly logCount: string;
+  readonly popularity: string;
+  readonly childFriendliness: string;
+  readonly transport: {
+    readonly label: string;
+    readonly severity: TagSeverity;
+  };
+}
 
 @Injectable({
   providedIn: 'root'
@@ -47,29 +72,31 @@ export class ToursListViewModel {
     { label: 'Vacation', value: 'VACATION' }
   ];
 
-  readonly selectedTour = computed(() => {
+  readonly tourRows = computed(() => this.toursState().map((tour) => this.toTourRow(tour)));
+
+  readonly selectedTour = computed<TourListRow | null>(() => {
     const selectedId = this.selectedTourIdState();
     if (selectedId === null) {
       return null;
     }
 
-    return this.toursState().find((tour) => tour.id === selectedId) ?? null;
+    return this.tourRows().find((tour) => tour.id === selectedId) ?? null;
   });
 
-  readonly pendingDeleteTour = computed(() => {
+  readonly pendingDeleteTour = computed<TourListRow | null>(() => {
     const pendingId = this.pendingDeleteIdState();
     if (pendingId === null) {
       return null;
     }
 
-    return this.toursState().find((tour) => tour.id === pendingId) ?? null;
+    return this.tourRows().find((tour) => tour.id === pendingId) ?? null;
   });
 
   readonly hasFilters = computed(
     () => this.searchQueryState().trim().length > 0 || this.transportFilterState() !== ''
   );
 
-  readonly visibleTourCount = computed(() => this.toursState().length);
+  readonly visibleTourCount = computed(() => this.tourRows().length);
 
   loadTours(): void {
     this.loadingState.set(true);
@@ -165,74 +192,6 @@ export class ToursListViewModel {
     });
   }
 
-  formatDistance(distanceM: number | undefined): string {
-    if (typeof distanceM !== 'number') {
-      return 'n/a';
-    }
-
-    if (distanceM < 1000) {
-      return `${Math.round(distanceM)} m`;
-    }
-
-    const kilometers = distanceM / 1000;
-    return `${kilometers >= 10 ? kilometers.toFixed(0) : kilometers.toFixed(1)} km`;
-  }
-
-  formatDuration(durationS: number | undefined): string {
-    if (typeof durationS !== 'number') {
-      return 'n/a';
-    }
-
-    const totalMinutes = Math.max(1, Math.round(durationS / 60));
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-
-    if (hours === 0) {
-      return `${minutes} min`;
-    }
-
-    if (minutes === 0) {
-      return `${hours} h`;
-    }
-
-    return `${hours} h ${minutes} min`;
-  }
-
-  formatLogCount(tour: TourSummaryDto): string {
-    const logCount = tour.computedAttributes?.logCount ?? 0;
-    return logCount === 1 ? '1 log' : `${logCount} logs`;
-  }
-
-  transportLabel(type: TourTransportType | undefined): string {
-    switch (type) {
-      case 'BIKE':
-        return 'Bike';
-      case 'HIKE':
-        return 'Hike';
-      case 'RUNNING':
-        return 'Running';
-      case 'VACATION':
-        return 'Vacation';
-      default:
-        return 'Unknown';
-    }
-  }
-
-  transportSeverity(type: TourTransportType | undefined): TagSeverity {
-    switch (type) {
-      case 'BIKE':
-        return 'info';
-      case 'HIKE':
-        return 'success';
-      case 'RUNNING':
-        return 'warn';
-      case 'VACATION':
-        return 'secondary';
-      default:
-        return 'contrast';
-    }
-  }
-
   private buildSearchParams(): SearchTours$Params | undefined {
     const query = this.searchQueryState().trim();
     const transportType = this.transportFilterState();
@@ -326,7 +285,7 @@ export class ToursListViewModel {
       return [];
     }
 
-    return Array.isArray(tours) ? tours.filter(this.isTourSummary) : null;
+    return Array.isArray(tours) ? tours.filter((tour) => this.isTourSummary(tour)) : null;
   }
 
   private isTourSummary(value: unknown): value is TourSummaryDto {
@@ -335,5 +294,24 @@ export class ToursListViewModel {
 
   private isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null;
+  }
+
+  private toTourRow(tour: TourSummaryDto): TourListRow {
+    return {
+      tour,
+      trackId: tour.id ?? `${tour.name ?? 'tour'}-${tour.startLocation ?? ''}-${tour.endLocation ?? ''}`,
+      id: tour.id,
+      name: tour.name || 'Untitled tour',
+      route: routeLabel(tour),
+      distance: formatDistance(tour.plannedDistanceM),
+      duration: formatDuration(tour.estimatedDurationS),
+      logCount: formatLogCount(tour),
+      popularity: tour.computedAttributes?.popularityLabel || 'n/a',
+      childFriendliness: tour.computedAttributes?.childFriendlinessLabel || 'n/a',
+      transport: {
+        label: transportLabel(tour.transportType),
+        severity: transportSeverity(tour.transportType)
+      }
+    };
   }
 }

@@ -5,7 +5,7 @@
     </a>
 
     <div class="detail-toolbar__actions">
-      @if (tourVm.tour(); as toolbarTour) {
+      @if (tourVm.tourView(); as toolbarTour) {
         <a pButton class="p-button-sm" severity="secondary" [outlined]="true" [routerLink]="['/tours', toolbarTour.id, 'edit']">
           <span pButtonLabel>Edit</span>
         </a>
@@ -34,30 +34,30 @@
 
   @if (tourVm.loading()) {
     <app-status-message variant="loading">Loading tour...</app-status-message>
-  } @else if (tourVm.tour(); as tour) {
+  } @else if (tourVm.tourView(); as tourView) {
     <header class="detail-header">
       <div>
         <p-tag
-          [value]="tourVm.transportLabel(tour.transportType)"
-          [severity]="tourVm.transportSeverity(tour.transportType)"
+          [value]="tourView.transport.label"
+          [severity]="tourView.transport.severity"
           [rounded]="true"
         />
-        <h1>{{ tour.name || 'Untitled tour' }}</h1>
-        <p>{{ tour.description || 'No description stored.' }}</p>
+        <h1>{{ tourView.name }}</h1>
+        <p>{{ tourView.description }}</p>
       </div>
 
       <dl class="detail-stats">
         <div>
           <dt>Distance</dt>
-          <dd>{{ tourVm.formatDistance(tour.plannedDistanceM) }}</dd>
+          <dd>{{ tourView.distance }}</dd>
         </div>
         <div>
           <dt>Estimated time</dt>
-          <dd>{{ tourVm.formatDuration(tour.estimatedDurationS) }}</dd>
+          <dd>{{ tourView.duration }}</dd>
         </div>
         <div>
           <dt>Timezone</dt>
-          <dd>{{ tour.timezoneId || 'n/a' }}</dd>
+          <dd>{{ tourView.timezone }}</dd>
         </div>
       </dl>
     </header>
@@ -68,23 +68,23 @@
         <dl class="detail-rows">
           <div>
             <dt>From</dt>
-            <dd>{{ tour.startLocation || 'n/a' }}</dd>
+            <dd>{{ tourView.tour.startLocation || 'n/a' }}</dd>
           </div>
           <div>
             <dt>To</dt>
-            <dd>{{ tour.endLocation || 'n/a' }}</dd>
+            <dd>{{ tourView.tour.endLocation || 'n/a' }}</dd>
           </div>
           <div>
             <dt>Transport type</dt>
-            <dd>{{ tourVm.transportLabel(tour.transportType) }}</dd>
+            <dd>{{ tourView.transport.label }}</dd>
           </div>
           <div>
             <dt>Created</dt>
-            <dd>{{ tourVm.formatDateTime(tour.createdAt) }}</dd>
+            <dd>{{ tourView.createdAt }}</dd>
           </div>
           <div>
             <dt>Updated</dt>
-            <dd>{{ tourVm.formatDateTime(tour.updatedAt) }}</dd>
+            <dd>{{ tourView.updatedAt }}</dd>
           </div>
         </dl>
       </article>
@@ -94,50 +94,50 @@
         <dl class="detail-rows">
           <div>
             <dt>Logs</dt>
-            <dd>{{ tour.computedAttributes?.logCount ?? 0 }}</dd>
+            <dd>{{ tourView.computed.logCount }}</dd>
           </div>
           <div>
             <dt>Popularity</dt>
-            <dd>{{ tour.computedAttributes?.popularityLabel || 'n/a' }}</dd>
+            <dd>{{ tourView.computed.popularityLabel }}</dd>
           </div>
           <div>
             <dt>Popularity score</dt>
-            <dd>{{ tour.computedAttributes?.popularityScore ?? 'n/a' }}</dd>
+            <dd>{{ tourView.computed.popularityScore }}</dd>
           </div>
           <div>
             <dt>Family suitability</dt>
-            <dd>{{ tour.computedAttributes?.childFriendlinessLabel || 'n/a' }}</dd>
+            <dd>{{ tourView.computed.childFriendlinessLabel }}</dd>
           </div>
           <div>
             <dt>Family score</dt>
-            <dd>{{ tour.computedAttributes?.childFriendlinessScore ?? 'n/a' }}</dd>
+            <dd>{{ tourView.computed.childFriendlinessScore }}</dd>
           </div>
         </dl>
       </article>
 
       <article class="detail-section">
         <h2>Cover Image</h2>
-        @if (tour.coverImage; as coverImage) {
+        @if (tourView.coverImage; as coverImage) {
           <div class="image-field">
             <div class="image-field__preview" aria-hidden="true">
-              <span>{{ coverImage.originalFilename?.slice(0, 2) || 'IM' }}</span>
+              <span>{{ coverImage.initials }}</span>
             </div>
             <dl class="detail-rows">
               <div>
                 <dt>File</dt>
-                <dd>{{ coverImage.originalFilename || 'n/a' }}</dd>
+                <dd>{{ coverImage.fileName }}</dd>
               </div>
               <div>
                 <dt>Type</dt>
-                <dd>{{ coverImage.contentType || 'n/a' }}</dd>
+                <dd>{{ coverImage.contentType }}</dd>
               </div>
               <div>
                 <dt>Size</dt>
-                <dd>{{ tourVm.formatBytes(coverImage.sizeBytes) }}</dd>
+                <dd>{{ coverImage.size }}</dd>
               </div>
               <div>
                 <dt>Path</dt>
-                <dd>{{ coverImage.path || 'n/a' }}</dd>
+                <dd>{{ coverImage.path }}</dd>
               </div>
             </dl>
           </div>
@@ -153,27 +153,27 @@
           <span class="map-line"></span>
           <span class="map-pin map-pin--end"></span>
         </div>
-        @if (tour.route; as route) {
+        @if (tourView.routeData; as route) {
           <dl class="detail-rows">
             <div>
               <dt>Source</dt>
-              <dd>{{ route.routeSource || 'n/a' }}</dd>
+              <dd>{{ route.source }}</dd>
             </div>
             <div>
               <dt>Profile</dt>
-              <dd>{{ route.routeProfile || 'n/a' }}</dd>
+              <dd>{{ route.profile }}</dd>
             </div>
             <div>
               <dt>Start coordinate</dt>
-              <dd>{{ tourVm.formatCoordinate(route.startCoordinate?.latitude, route.startCoordinate?.longitude) }}</dd>
+              <dd>{{ route.startCoordinate }}</dd>
             </div>
             <div>
               <dt>End coordinate</dt>
-              <dd>{{ tourVm.formatCoordinate(route.endCoordinate?.latitude, route.endCoordinate?.longitude) }}</dd>
+              <dd>{{ route.endCoordinate }}</dd>
             </div>
             <div>
               <dt>Fetched</dt>
-              <dd>{{ tourVm.formatDateTime(route.routeFetchedAt) }}</dd>
+              <dd>{{ route.fetchedAt }}</dd>
             </div>
           </dl>
         } @else {
@@ -188,7 +188,7 @@
           <h2 id="tour-logs-title">Tour Logs</h2>
           <p>Accomplished statistics for this tour.</p>
         </div>
-        <a pButton class="p-button-sm" [routerLink]="['/tours', tour.id, 'logs', 'new']">
+        <a pButton class="p-button-sm" [routerLink]="['/tours', tourView.id, 'logs', 'new']">
           <span pButtonLabel>New log</span>
         </a>
       </div>
@@ -201,50 +201,50 @@
 
       @if (tourVm.logsLoading()) {
         <app-status-message variant="loading">Loading tour logs...</app-status-message>
-      } @else if (tourVm.logs().length === 0) {
+      } @else if (tourVm.logRows().length === 0) {
         <div class="empty-logs">
           <h3>No logs yet</h3>
           <p>This tour has no accomplished tour statistics yet.</p>
         </div>
       } @else {
         <div class="logs-list" aria-label="Tour logs">
-          @for (log of tourVm.logs(); track log.id ?? $index) {
+          @for (logRow of tourVm.logRows(); track logRow.trackId) {
             <article class="log-row">
               <div class="log-row__main">
-                <time [attr.datetime]="log.performedAt || null">
-                  {{ tourVm.formatDateTime(log.performedAt) }}
+                <time [attr.datetime]="logRow.performedAtIso">
+                  {{ logRow.performedAt }}
                 </time>
-                <p>{{ log.comment || 'No comment stored.' }}</p>
-                <span>{{ tourVm.formatWeather(log) }}</span>
+                <p>{{ logRow.comment }}</p>
+                <span>{{ logRow.weather }}</span>
               </div>
 
               <dl class="log-row__facts">
                 <div>
                   <dt>Difficulty</dt>
-                  <dd>{{ tourVm.formatDifficulty(log.difficulty) }}</dd>
+                  <dd>{{ logRow.difficulty }}</dd>
                 </div>
                 <div>
                   <dt>Distance</dt>
-                  <dd>{{ tourVm.formatDistance(log.totalDistanceM) }}</dd>
+                  <dd>{{ logRow.distance }}</dd>
                 </div>
                 <div>
                   <dt>Time</dt>
-                  <dd>{{ tourVm.formatDuration(log.totalTimeS) }}</dd>
+                  <dd>{{ logRow.duration }}</dd>
                 </div>
                 <div>
                   <dt>Rating</dt>
-                  <dd>{{ tourVm.formatRating(log.rating) }}</dd>
+                  <dd>{{ logRow.rating }}</dd>
                 </div>
               </dl>
 
               <div class="log-row__actions">
-                @if (log.id; as logId) {
+                @if (logRow.id; as logId) {
                   <a
                     pButton
                     class="p-button-sm"
                     severity="secondary"
                     [outlined]="true"
-                    [routerLink]="['/tours', tour.id, 'logs', logId, 'edit']"
+                    [routerLink]="['/tours', tourView.id, 'logs', logId, 'edit']"
                   >
                     <span pButtonLabel>Edit</span>
                   </a>
@@ -256,8 +256,8 @@
                     [outlined]="true"
                     [loading]="tourVm.deletingLogId() === logId"
                     [disabled]="tourVm.deletingLogId() !== null"
-                    [attr.aria-label]="'Delete log from ' + tourVm.formatDateTime(log.performedAt)"
-                    (click)="tourVm.deleteLog(tour.id, logId)"
+                    [attr.aria-label]="logRow.deleteAriaLabel"
+                    (click)="tourVm.deleteLog(tourView.id, logId)"
                   >
                     <span pButtonLabel>Delete</span>
                   </button>

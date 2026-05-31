@@ -94,42 +94,40 @@
       }
     </div>
 
-    @if (tourVm.loading() && tourVm.tours().length === 0) {
+    @if (tourVm.loading() && tourVm.tourRows().length === 0) {
       <div class="loading-panel" aria-hidden="true">
         <span></span>
         <span></span>
         <span></span>
       </div>
-    } @else if (tourVm.tours().length === 0) {
+    } @else if (tourVm.tourRows().length === 0) {
       <div class="empty-panel">
         <h2>No tours found</h2>
         <p>Adjust the search or clear the filters.</p>
       </div>
     } @else {
       <div class="tour-list" aria-label="Tours">
-        @for (tour of tourVm.tours(); track tour.id ?? $index) {
+        @for (tourRow of tourVm.tourRows(); track tourRow.trackId) {
           <button
             type="button"
             class="tour-row"
-            [class.is-selected]="tour.id === tourVm.selectedTourId()"
-            [attr.aria-pressed]="tour.id === tourVm.selectedTourId()"
-            (click)="tourVm.selectTour(tour.id)"
+            [class.is-selected]="tourRow.id === tourVm.selectedTourId()"
+            [attr.aria-pressed]="tourRow.id === tourVm.selectedTourId()"
+            (click)="tourVm.selectTour(tourRow.id)"
           >
             <span class="tour-row__main">
-              <span class="tour-row__title">{{ tour.name || 'Untitled tour' }}</span>
-              <span class="tour-row__route">
-                {{ tour.startLocation || 'Unknown start' }} to {{ tour.endLocation || 'unknown destination' }}
-              </span>
+              <span class="tour-row__title">{{ tourRow.name }}</span>
+              <span class="tour-row__route">{{ tourRow.route }}</span>
             </span>
 
             <span class="tour-row__facts">
               <p-tag
-                [value]="tourVm.transportLabel(tour.transportType)"
-                [severity]="tourVm.transportSeverity(tour.transportType)"
+                [value]="tourRow.transport.label"
+                [severity]="tourRow.transport.severity"
                 [rounded]="true"
               />
-              <span>{{ tourVm.formatDistance(tour.plannedDistanceM) }}</span>
-              <span>{{ tourVm.formatDuration(tour.estimatedDurationS) }}</span>
+              <span>{{ tourRow.distance }}</span>
+              <span>{{ tourRow.duration }}</span>
             </span>
           </button>
         }
@@ -141,34 +139,34 @@
     @if (tourVm.selectedTour(); as selectedTour) {
       <div class="selection-panel__header">
         <p-tag
-          [value]="tourVm.transportLabel(selectedTour.transportType)"
-          [severity]="tourVm.transportSeverity(selectedTour.transportType)"
+          [value]="selectedTour.transport.label"
+          [severity]="selectedTour.transport.severity"
           [rounded]="true"
         />
-        <h2 id="selected-tour-title">{{ selectedTour.name || 'Untitled tour' }}</h2>
-        <p>{{ selectedTour.startLocation || 'Unknown start' }} to {{ selectedTour.endLocation || 'unknown destination' }}</p>
+        <h2 id="selected-tour-title">{{ selectedTour.name }}</h2>
+        <p>{{ selectedTour.route }}</p>
       </div>
 
       <dl class="selection-facts">
         <div>
           <dt>Distance</dt>
-          <dd>{{ tourVm.formatDistance(selectedTour.plannedDistanceM) }}</dd>
+          <dd>{{ selectedTour.distance }}</dd>
         </div>
         <div>
           <dt>Estimated time</dt>
-          <dd>{{ tourVm.formatDuration(selectedTour.estimatedDurationS) }}</dd>
+          <dd>{{ selectedTour.duration }}</dd>
         </div>
         <div>
           <dt>Logs</dt>
-          <dd>{{ tourVm.formatLogCount(selectedTour) }}</dd>
+          <dd>{{ selectedTour.logCount }}</dd>
         </div>
         <div>
           <dt>Popularity</dt>
-          <dd>{{ selectedTour.computedAttributes?.popularityLabel || 'n/a' }}</dd>
+          <dd>{{ selectedTour.popularity }}</dd>
         </div>
         <div>
           <dt>Family suitability</dt>
-          <dd>{{ selectedTour.computedAttributes?.childFriendlinessLabel || 'n/a' }}</dd>
+          <dd>{{ selectedTour.childFriendliness }}</dd>
         </div>
       </dl>
 
@@ -194,7 +192,7 @@
 
       @if (tourVm.pendingDeleteTour(); as pendingTour) {
         <div class="delete-panel" role="alert">
-          <p>Delete {{ pendingTour.name || 'this tour' }}?</p>
+          <p>Delete {{ pendingTour.name }}?</p>
           <div>
             <button
               pButton
