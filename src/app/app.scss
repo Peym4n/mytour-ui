@@ -1,15 +1,22 @@
 .app-toolbar {
-  display: block;
-  padding: 0.75rem 1rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: 0.75rem;
+  padding-inline: max(1rem, calc((100vw - 80rem) / 2 + 1rem));
+  border-bottom: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
 }
 
-:host ::ng-deep .app-toolbar .p-toolbar {
-  max-width: 80rem;
-  margin: 0 auto;
+:host ::ng-deep .app-toolbar.p-toolbar {
+  border: 0;
 }
 
 .app-brand {
-  color: var(--p-primary-color);
+  color: #0f172a;
   font-size: 1.25rem;
   font-weight: 700;
   text-decoration: none;
@@ -23,10 +30,11 @@
 }
 
 .active-route {
-  background: var(--p-primary-50);
-  color: var(--p-primary-700);
+  background: #eff6ff;
+  color: #1d4ed8;
 }
 
 main {
   min-height: calc(100vh - 5rem);
+  background: transparent;
 }

@@ -16,7 +16,10 @@ export const appConfig: ApplicationConfig = {
     provideApiConfiguration(environment.apiUrl),
     providePrimeNG({
       theme: {
-        preset: Aura
+        preset: Aura,
+        options: {
+          darkModeSelector: false
+        }
       }
     })
   ],

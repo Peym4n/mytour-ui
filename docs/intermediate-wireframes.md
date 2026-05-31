@@ -2,6 +2,14 @@
 
 These wireframes document the intermediate hand-in UI flow. The design uses a master-detail workflow: users first find a tour, inspect the selected tour, then use focused forms for creating or editing tours and logs.
 
+AI-generated visual mockups are available as companion images:
+
+- [Tours list/dashboard mockup](mockups/mockup-tours-list-dashboard.png)
+- [Tour detail mockup](mockups/mockup-tour-detail.png)
+- [Tour and log forms mockup](mockups/mockup-forms.png)
+
+The generated mockups are design references, not exact screenshots. The implemented Angular UI keeps the same interaction model while using the project's actual components, labels, and backend data.
+
 ## UX Principles
 
 - Keep the app tool-like and predictable: navigation at the top, tour management in the main content, and clear form pages for edits.
