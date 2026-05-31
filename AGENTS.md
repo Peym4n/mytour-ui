@@ -108,4 +108,11 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 ## Accessibility & Testing Requirements
 
 - The application MUST pass all AXE checks and follow WCAG AA minimums (focus management, color contrast, ARIA).
-- You must write comprehensive unit tests for components, view-models, and services using Angular's default testing framework to help meet the 20+ unit test project requirement.
+- Unit tests are required whenever a change has clear testing value. Do not leave behavior such as ViewModel state transitions, form validation/request mapping, computed signals, error mapping, formatting helpers, facade behavior, route-parameter handling, import/export logic, or API fallback logic untested.
+- Prefer TDD for new behavior with clear acceptance criteria: write or update the failing unit test first, implement the smallest change that passes, then refactor while keeping the test green.
+- Add or update tests in the same change as the implementation. If a change is intentionally not unit-tested, the reason must be clear, for example pure markup/styling only, generated code, or behavior already covered by a higher-value test.
+- Keep tests focused on behavior and public ViewModel/component contracts. Avoid brittle tests that assert private implementation details or generated OpenAPI client internals.
+- Mock generated API services, router dependencies, browser APIs, and external facades. Unit tests must not perform network calls, load real map tiles, or depend on backend availability.
+- Cover both success and meaningful failure/edge cases for stateful services and forms, including loading/error state and validation messages where applicable.
+- Run `npm test` after adding or changing tests, and run `npm run build` when implementation files changed.
+- Maintain the project target of at least 20 meaningful frontend unit tests; prefer adding tests incrementally with each feature rather than catching up at the end.
