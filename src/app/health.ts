@@ -17,15 +17,15 @@ import { HealthViewModel } from './health.service';
               <span class="text-lg font-medium text-gray-600">Status</span>
               <p-tag
                 [value]="healthVm.status()"
-                [severity]="statusSeverity()"
+                [severity]="healthVm.statusSeverity()"
                 [rounded]="true"
               />
             </div>
 
             <p-button
               label="Refresh Status"
-              [loading]="isChecking()"
-              [disabled]="isChecking()"
+              [loading]="healthVm.isChecking()"
+              [disabled]="healthVm.isChecking()"
               (onClick)="healthVm.checkHealth()"
             />
           </div>
@@ -36,20 +36,9 @@ import { HealthViewModel } from './health.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HealthComponent implements OnInit {
-  public healthVm = inject(HealthViewModel);
+  protected readonly healthVm = inject(HealthViewModel);
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.healthVm.checkHealth();
-  }
-
-  isChecking() {
-    return this.healthVm.status() === 'Checking...';
-  }
-
-  statusSeverity(): 'success' | 'info' | 'danger' {
-    const status = this.healthVm.status();
-    if (status === 'UP') return 'success';
-    if (status === 'Checking...') return 'info';
-    return 'danger';
   }
 }
