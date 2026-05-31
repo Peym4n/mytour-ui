@@ -33,6 +33,8 @@
           <span>Name</span>
           <input
             pInputText
+            id="tour-name"
+            name="name"
             type="text"
             formControlName="name"
             maxlength="120"
@@ -46,6 +48,8 @@
         <label class="form-field">
           <span>Description</span>
           <textarea
+            id="tour-description"
+            name="description"
             formControlName="description"
             rows="5"
             maxlength="5000"
@@ -59,7 +63,12 @@
         <div class="form-grid">
           <label class="form-field">
             <span>Transport type</span>
-            <select formControlName="transportType" [attr.aria-invalid]="tourFormVm.controlInvalid('transportType')">
+            <select
+              id="tour-transport-type"
+              name="transportType"
+              formControlName="transportType"
+              [attr.aria-invalid]="tourFormVm.controlInvalid('transportType')"
+            >
               @for (option of tourFormVm.transportOptions; track option.value) {
                 <option [value]="option.value">{{ option.label }}</option>
               }
@@ -73,6 +82,8 @@
             <span>Timezone</span>
             <input
               pInputText
+              id="tour-timezone-id"
+              name="timezoneId"
               type="text"
               formControlName="timezoneId"
               maxlength="64"
@@ -93,6 +104,8 @@
             <span>Start location</span>
             <input
               pInputText
+              id="tour-start-location"
+              name="startLocation"
               type="text"
               formControlName="startLocation"
               maxlength="255"
@@ -107,6 +120,8 @@
             <span>End location</span>
             <input
               pInputText
+              id="tour-end-location"
+              name="endLocation"
               type="text"
               formControlName="endLocation"
               maxlength="255"
@@ -123,6 +138,8 @@
             <span>Start latitude</span>
             <input
               pInputText
+              id="tour-start-latitude"
+              name="startLatitude"
               type="number"
               step="0.0001"
               formControlName="startLatitude"
@@ -137,6 +154,8 @@
             <span>Start longitude</span>
             <input
               pInputText
+              id="tour-start-longitude"
+              name="startLongitude"
               type="number"
               step="0.0001"
               formControlName="startLongitude"
@@ -151,6 +170,8 @@
             <span>End latitude</span>
             <input
               pInputText
+              id="tour-end-latitude"
+              name="endLatitude"
               type="number"
               step="0.0001"
               formControlName="endLatitude"
@@ -165,6 +186,8 @@
             <span>End longitude</span>
             <input
               pInputText
+              id="tour-end-longitude"
+              name="endLongitude"
               type="number"
               step="0.0001"
               formControlName="endLongitude"

@@ -34,6 +34,8 @@
             <span>Performed at</span>
             <input
               pInputText
+              id="tour-log-performed-at"
+              name="performedAt"
               type="datetime-local"
               formControlName="performedAt"
               [attr.aria-invalid]="tourLogFormVm.controlInvalid('performedAt')"
@@ -47,6 +49,8 @@
             <span>Total distance in meters</span>
             <input
               pInputText
+              id="tour-log-total-distance-m"
+              name="totalDistanceM"
               type="number"
               min="0"
               step="1"
@@ -62,6 +66,8 @@
             <span>Total time in seconds</span>
             <input
               pInputText
+              id="tour-log-total-time-s"
+              name="totalTimeS"
               type="number"
               min="1"
               step="1"
@@ -75,7 +81,12 @@
 
           <label class="form-field">
             <span>Difficulty</span>
-            <select formControlName="difficulty" [attr.aria-invalid]="tourLogFormVm.controlInvalid('difficulty')">
+            <select
+              id="tour-log-difficulty"
+              name="difficulty"
+              formControlName="difficulty"
+              [attr.aria-invalid]="tourLogFormVm.controlInvalid('difficulty')"
+            >
               @for (option of tourLogFormVm.difficultyOptions; track option.value) {
                 <option [value]="option.value">{{ option.label }}</option>
               }
@@ -87,7 +98,12 @@
 
           <label class="form-field">
             <span>Rating</span>
-            <select formControlName="rating" [attr.aria-invalid]="tourLogFormVm.controlInvalid('rating')">
+            <select
+              id="tour-log-rating"
+              name="rating"
+              formControlName="rating"
+              [attr.aria-invalid]="tourLogFormVm.controlInvalid('rating')"
+            >
               @for (option of tourLogFormVm.ratingOptions; track option.value) {
                 <option [value]="option.value">{{ option.label }}</option>
               }
@@ -104,6 +120,8 @@
         <label class="form-field">
           <span>Notes</span>
           <textarea
+            id="tour-log-comment"
+            name="comment"
             formControlName="comment"
             rows="6"
             maxlength="5000"
