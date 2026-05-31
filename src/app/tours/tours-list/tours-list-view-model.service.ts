@@ -32,6 +32,11 @@ export interface TourListRow {
   readonly logCount: string;
   readonly popularity: string;
   readonly childFriendliness: string;
+  readonly coverImage: {
+    readonly initials: string;
+    readonly label: string;
+    readonly hasImage: boolean;
+  };
   readonly transport: {
     readonly label: string;
     readonly severity: TagSeverity;
@@ -308,10 +313,27 @@ export class ToursListViewModel {
       logCount: formatLogCount(tour),
       popularity: tour.computedAttributes?.popularityLabel || 'n/a',
       childFriendliness: tour.computedAttributes?.childFriendlinessLabel || 'n/a',
+      coverImage: {
+        initials: this.imageInitials(tour.name),
+        label: tour.coverImage?.originalFilename || 'No cover image',
+        hasImage: Boolean(tour.coverImage)
+      },
       transport: {
         label: transportLabel(tour.transportType),
         severity: transportSeverity(tour.transportType)
       }
     };
+  }
+
+  private imageInitials(name: string | undefined): string {
+    const words = (name || 'Tour')
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0);
+
+    return words
+      .slice(0, 2)
+      .map((word) => word[0]?.toUpperCase() ?? '')
+      .join('') || 'T';
   }
 }

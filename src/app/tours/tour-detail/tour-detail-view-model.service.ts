@@ -92,6 +92,7 @@ export class TourDetailViewModel {
   private readonly logsState = signal<TourLogDto[]>([]);
   private readonly loadingState = signal(false);
   private readonly logsLoadingState = signal(false);
+  private readonly pendingDeleteTourState = signal(false);
   private readonly deletingTourState = signal(false);
   private readonly deletingLogIdState = signal<number | null>(null);
   private readonly errorMessageState = signal<string | null>(null);
@@ -102,6 +103,7 @@ export class TourDetailViewModel {
   readonly logs = this.logsState.asReadonly();
   readonly loading = this.loadingState.asReadonly();
   readonly logsLoading = this.logsLoadingState.asReadonly();
+  readonly pendingDeleteTour = this.pendingDeleteTourState.asReadonly();
   readonly deletingTour = this.deletingTourState.asReadonly();
   readonly deletingLogId = this.deletingLogIdState.asReadonly();
   readonly errorMessage = this.errorMessageState.asReadonly();
@@ -156,10 +158,21 @@ export class TourDetailViewModel {
     this.logsState.set([]);
     this.loadingState.set(false);
     this.logsLoadingState.set(false);
+    this.pendingDeleteTourState.set(false);
     this.deletingTourState.set(false);
     this.deletingLogIdState.set(null);
     this.noticeMessageState.set(null);
     this.errorMessageState.set('The selected tour id is invalid.');
+  }
+
+  requestDeleteTour(): void {
+    this.errorMessageState.set(null);
+    this.noticeMessageState.set(null);
+    this.pendingDeleteTourState.set(true);
+  }
+
+  cancelDeleteTour(): void {
+    this.pendingDeleteTourState.set(false);
   }
 
   deleteTour(tourId: number | undefined): void {
@@ -175,6 +188,7 @@ export class TourDetailViewModel {
 
     this.toursApi.deleteTour({ tourId }).pipe(take(1)).subscribe({
       next: () => {
+        this.pendingDeleteTourState.set(false);
         this.deletingTourState.set(false);
         void this.router.navigate(['/tours']);
       },

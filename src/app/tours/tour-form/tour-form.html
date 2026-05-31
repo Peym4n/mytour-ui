@@ -97,6 +97,14 @@
       </section>
 
       <section class="form-section">
+        <h2>Cover Image</h2>
+        <div class="cover-placeholder" aria-label="Cover image placeholder">
+          <div class="cover-placeholder__preview" aria-hidden="true">IMG</div>
+          <p>Cover image upload is represented as a placeholder for the intermediate hand-in.</p>
+        </div>
+      </section>
+
+      <section class="form-section">
         <h2>Route</h2>
 
         <div class="form-grid">
@@ -201,12 +209,12 @@
       </section>
 
       <div class="form-actions">
-        <button pButton type="submit" [loading]="tourFormVm.saving()" [disabled]="tourFormVm.saving()">
-          <span pButtonLabel>{{ tourFormVm.submitLabel() }}</span>
-        </button>
         <a pButton routerLink="/tours" severity="secondary" [outlined]="true">
           <span pButtonLabel>Cancel</span>
         </a>
+        <button pButton type="submit" [loading]="tourFormVm.saving()" [disabled]="tourFormVm.saving()">
+          <span pButtonLabel>{{ tourFormVm.submitLabel() }}</span>
+        </button>
       </div>
     </form>
   }

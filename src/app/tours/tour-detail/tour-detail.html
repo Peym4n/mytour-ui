@@ -24,7 +24,7 @@
           [loading]="tourVm.deletingTour()"
           [disabled]="tourVm.deletingTour()"
           [attr.aria-label]="'Delete ' + deleteTour.name"
-          (click)="tourVm.deleteTour(deleteTour.id)"
+          (click)="tourVm.requestDeleteTour()"
         >
           <span pButtonLabel>Delete</span>
         </button>
@@ -35,6 +35,36 @@
       }
     </div>
   </div>
+
+  @if (tourVm.pendingDeleteTour() && tourVm.tourView(); as deleteTour) {
+    <div class="delete-panel" role="alert">
+      <p>Delete {{ deleteTour.name }}?</p>
+      <div>
+        <button
+          pButton
+          type="button"
+          class="p-button-sm"
+          severity="secondary"
+          [text]="true"
+          (click)="tourVm.cancelDeleteTour()"
+          [disabled]="tourVm.deletingTour()"
+        >
+          <span pButtonLabel>Cancel</span>
+        </button>
+        <button
+          pButton
+          type="button"
+          class="p-button-sm"
+          severity="danger"
+          [loading]="tourVm.deletingTour()"
+          [disabled]="tourVm.deletingTour()"
+          (click)="tourVm.deleteTour(deleteTour.id)"
+        >
+          <span pButtonLabel>Delete tour</span>
+        </button>
+      </div>
+    </div>
+  }
 
   @if (tourVm.noticeMessage(); as noticeMessage) {
     <app-status-message variant="notice">
@@ -158,16 +188,25 @@
             </dl>
           </div>
         } @else {
-          <p class="muted-copy">No cover image stored.</p>
+          <div class="image-field">
+            <div class="image-field__preview image-field__preview--empty" aria-hidden="true">
+              <span>IMG</span>
+            </div>
+            <p class="muted-copy">No cover image stored yet. The intermediate hand-in uses this placeholder for image data.</p>
+          </div>
         }
       </article>
 
       <article class="detail-section detail-section--map">
         <h2>Route Map</h2>
         <div class="map-placeholder" aria-label="Route map preview">
+          <span class="map-water"></span>
+          <span class="map-park"></span>
           <span class="map-pin map-pin--start"></span>
           <span class="map-line"></span>
           <span class="map-pin map-pin--end"></span>
+          <span class="map-label map-label--start">Start</span>
+          <span class="map-label map-label--end">End</span>
         </div>
         @if (tourView.routeData; as route) {
           <dl class="detail-rows">

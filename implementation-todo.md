@@ -69,6 +69,7 @@ Implementation tasks:
 16. [x] Add basic frontend tests or smoke checks for critical UI/service behavior if time allows.
     - Current frontend test suite passes with 14 tests covering health state, app shell, tour display helpers, tour list view model behavior, and tour form view model behavior.
 17. [ ] Create/update wireframes for the implemented UI flow and add them to the protocol.
+    - Wireframes were created in `docs/intermediate-wireframes.md`
 18. [ ] Write the intermediate protocol section describing UX decisions, wireframes, and the current frontend/backend integration boundary.
 19. [x] Run `npm run build` in `mytour-ui` and fix build errors.
 20. [x] Run the backend locally and verify the Angular app can reach it from a clean start.

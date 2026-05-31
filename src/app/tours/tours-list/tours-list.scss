@@ -55,7 +55,7 @@
 
 .tour-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
   gap: 1rem;
   align-items: center;
   width: 100%;
@@ -81,6 +81,37 @@
     border-color: #2563eb;
     box-shadow: inset 4px 0 0 #2563eb;
   }
+}
+
+.tour-row__image,
+.selection-panel__image {
+  display: grid;
+  place-items: center;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #dbeafe, #dcfce7);
+  color: #0f172a;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.tour-row__image {
+  width: 4.5rem;
+  aspect-ratio: 4 / 3;
+  font-size: 1.1rem;
+}
+
+.tour-row__image--empty,
+.selection-panel__image--empty {
+  border-style: dashed;
+  background: repeating-linear-gradient(
+    135deg,
+    #f8fafc,
+    #f8fafc 0.55rem,
+    #e2e8f0 0.55rem,
+    #e2e8f0 0.65rem
+  );
+  color: #475569;
 }
 
 .tour-row__main,
@@ -139,6 +170,12 @@
   }
 }
 
+.selection-panel__image {
+  width: 100%;
+  min-height: 9rem;
+  font-size: 2rem;
+}
+
 .selection-facts {
   display: grid;
   gap: 0.75rem;
@@ -169,6 +206,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  justify-content: flex-end;
 }
 
 .delete-panel {
@@ -223,5 +261,9 @@
   .filter-actions,
   .tour-row__facts {
     justify-content: flex-start;
+  }
+
+  .tour-row__image {
+    width: 100%;
   }
 }

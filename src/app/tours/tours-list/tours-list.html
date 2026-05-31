@@ -40,6 +40,8 @@
         <span>Search</span>
         <input
           pInputText
+          id="tour-search"
+          name="search"
           type="search"
           [value]="tourVm.searchQuery()"
           (input)="onSearchInput($event)"
@@ -49,7 +51,12 @@
 
       <label class="filter-field filter-field--select">
         <span>Transport</span>
-        <select [value]="tourVm.transportFilter()" (change)="onTransportChange($event)">
+        <select
+          id="tour-transport-filter"
+          name="transport"
+          [value]="tourVm.transportFilter()"
+          (change)="onTransportChange($event)"
+        >
           @for (option of tourVm.transportOptions; track option.value) {
             <option [value]="option.value">{{ option.label }}</option>
           }
@@ -57,9 +64,6 @@
       </label>
 
       <div class="filter-actions">
-        <button pButton type="submit" class="p-button-sm" [disabled]="tourVm.loading()">
-          <span pButtonLabel>Apply</span>
-        </button>
         <button
           pButton
           type="button"
@@ -70,6 +74,9 @@
           [disabled]="!tourVm.hasFilters() || tourVm.loading()"
         >
           <span pButtonLabel>Clear</span>
+        </button>
+        <button pButton type="submit" class="p-button-sm" [disabled]="tourVm.loading()">
+          <span pButtonLabel>Apply</span>
         </button>
       </div>
     </form>
@@ -115,6 +122,14 @@
             [attr.aria-pressed]="tourRow.id === tourVm.selectedTourId()"
             (click)="tourVm.selectTour(tourRow.id)"
           >
+            <span
+              class="tour-row__image"
+              [class.tour-row__image--empty]="!tourRow.coverImage.hasImage"
+              [attr.aria-label]="tourRow.coverImage.label"
+            >
+              {{ tourRow.coverImage.initials }}
+            </span>
+
             <span class="tour-row__main">
               <span class="tour-row__title">{{ tourRow.name }}</span>
               <span class="tour-row__route">{{ tourRow.route }}</span>
@@ -138,6 +153,13 @@
   <aside class="selection-panel" aria-labelledby="selected-tour-title">
     @if (tourVm.selectedTour(); as selectedTour) {
       <div class="selection-panel__header">
+        <div
+          class="selection-panel__image"
+          [class.selection-panel__image--empty]="!selectedTour.coverImage.hasImage"
+          [attr.aria-label]="selectedTour.coverImage.label"
+        >
+          {{ selectedTour.coverImage.initials }}
+        </div>
         <p-tag
           [value]="selectedTour.transport.label"
           [severity]="selectedTour.transport.severity"
@@ -198,22 +220,22 @@
               pButton
               type="button"
               class="p-button-sm"
-              severity="danger"
-              (click)="tourVm.deletePendingTour()"
-              [disabled]="tourVm.loading()"
-            >
-              <span pButtonLabel>Delete tour</span>
-            </button>
-            <button
-              pButton
-              type="button"
-              class="p-button-sm"
               severity="secondary"
               [text]="true"
               (click)="tourVm.cancelDelete()"
               [disabled]="tourVm.loading()"
             >
               <span pButtonLabel>Cancel</span>
+            </button>
+            <button
+              pButton
+              type="button"
+              class="p-button-sm"
+              severity="danger"
+              (click)="tourVm.deletePendingTour()"
+              [disabled]="tourVm.loading()"
+            >
+              <span pButtonLabel>Delete tour</span>
             </button>
           </div>
         </div>

@@ -134,12 +134,12 @@
       </section>
 
       <div class="form-actions">
-        <button pButton type="submit" [loading]="tourLogFormVm.saving()" [disabled]="tourLogFormVm.saving()">
-          <span pButtonLabel>{{ tourLogFormVm.submitLabel() }}</span>
-        </button>
         <a pButton [routerLink]="tourLogFormVm.backLink()" severity="secondary" [outlined]="true">
           <span pButtonLabel>Cancel</span>
         </a>
+        <button pButton type="submit" [loading]="tourLogFormVm.saving()" [disabled]="tourLogFormVm.saving()">
+          <span pButtonLabel>{{ tourLogFormVm.submitLabel() }}</span>
+        </button>
       </div>
     </form>
   }
