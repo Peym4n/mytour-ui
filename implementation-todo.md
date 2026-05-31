@@ -30,7 +30,26 @@ This order is optimized for passing the intermediate hand-in first, then extendi
 
 ## Intermediate Hand-In TODO
 
-1. [ ] Re-read the intermediate checklist and mark the exact must-haves: Angular frontend, MVVM-style UI structure, reusable component, responsive UI, CRUD screens, validation, and wireframes.
+Checklist requirements from `TourPlanner_Checklist_Intermediate.xlsx`:
+
+- [x] Must have: uses Angular as frontend framework.
+- [x] Must have: uses MVVM for UI.
+- [ ] GUI: correct data binding between UI elements and view model properties.
+- [ ] GUI: UI responds to window size changes.
+- [ ] GUI: defines a reusable UI component.
+- [ ] Tours: create, modify, and delete tours.
+- [ ] Tours: tours have required attributes, including image, and are managed in a list view.
+- [ ] Tours: tour details show all tour attributes of a selected tour and a map placeholder.
+- [ ] Tours: validates user input with no crash on wrong input.
+- [ ] Tour Logs: create, modify, and delete tour logs.
+- [ ] Tour Logs: tour logs have required attributes.
+- [ ] Tour Logs: show all logs of a selected tour with all log attributes in a list view.
+- [ ] Tour Logs: validates user input with no crash on wrong input.
+- [ ] Protocol: describes UX and includes wireframes.
+
+Implementation tasks:
+
+1. [x] Re-read the intermediate checklist and mark the exact must-haves: Angular frontend, MVVM-style UI structure, reusable component, responsive UI, CRUD screens, validation, and wireframes.
 2. [x] Define the frontend domain models for `Tour` and `TourLog`, including all required attributes from the spec.
 3. [x] Decide the intermediate data strategy: use Angular services with mock/in-memory data first, then connect the same service API to the backend once endpoints exist.
 4. [x] Build the main Angular shell: routing, navigation, shared layout, empty/error/loading states, and responsive structure.
@@ -54,6 +73,56 @@ This order is optimized for passing the intermediate hand-in first, then extendi
 22. [ ] Create the intermediate zip/source snapshot and check that it contains the latest code and README.
 
 ## Full Hand-In TODO
+
+Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
+
+- [x] Must have: uses C# or Java for backend.
+- [x] Must have: uses Angular as frontend framework.
+- [x] Must have: uses MVVM for UI.
+- [x] Must have: implements a layer-based architecture (UI/BL/DAL).
+- [ ] Must have: implements at least one design pattern.
+- [x] Must have: uses a Postgres database for storing tour data.
+- [ ] Must have: does not allow for SQL injection.
+- [x] Must have: uses an OR-mapping library.
+- [x] Must have: uses configuration, not code, at minimum for the DB connection string.
+- [ ] Must have: integrates the OpenRouteServices.org API and Leaflet.
+- [ ] Must have: implements at least 20 unit tests.
+- [x] GUI: correct data binding between UI elements and view model properties.
+- [ ] GUI: UI responds to window size changes.
+- [x] GUI: defines a reusable UI component.
+- [ ] Tours: create, modify, and delete tours, also in DAL.
+- [x] Tours: tours have required attributes, including image, and are managed in a list view.
+- [ ] Tours: tours have computed attributes.
+- [ ] Tours: tour details show all tour attributes of a selected tour and also the map image.
+- [x] Tours: validates user input with no crash on wrong input.
+- [ ] Tour Logs: create, modify, and delete tour logs, also in DAL.
+- [x] Tour Logs: tour logs have required attributes.
+- [x] Tour Logs: show all logs of a selected tour with all log attributes in a list view.
+- [x] Tour Logs: validates user input with no crash on wrong input.
+- [ ] Full-Text Search: search performs full-text search in tours, tour logs, and computed attributes.
+- [ ] Full-Text Search: list of tours according to current search.
+- [ ] Import/Export: export tour data.
+- [ ] Import/Export: import tour data.
+- [ ] Mandatory unique feature.
+- [ ] Non-functional: layers only call methods of the immediate layer below or own methods.
+- [ ] Non-functional: layers define their own exceptions, no implementation-specific exceptions escape.
+- [ ] Non-functional: uses the OpenRouteServices.org Directions API for tour retrieval.
+- [ ] Non-functional: uses Leaflet for the map.
+- [ ] Non-functional: all tour data, maybe except image data, is stored in the database.
+- [x] Non-functional: all configuration information is stored in configuration, not in code.
+- [ ] Non-functional: logs exceptions, errors, and other useful technical information.
+- [ ] Non-functional: quality of unit tests (usefulness, no duplicates).
+- [ ] Protocol: describes app architecture, including layers, layer contents/functionality, and class diagrams.
+- [ ] Protocol: describes use cases, including use-case and sequence diagrams.
+- [ ] Protocol: describes UX and includes wireframes.
+- [ ] Protocol: describes library decisions where applicable and lessons learned.
+- [ ] Protocol: describes implemented design pattern.
+- [ ] Protocol: describes unit testing decisions.
+- [ ] Protocol: describes unique feature.
+- [ ] Protocol: contains tracked time.
+- [ ] Protocol: contains link to Git.
+
+Implementation tasks:
 
 1. [ ] Re-read the final checklist and map every must-have to code, tests, or protocol evidence.
 2. [ ] Finalize the backend package structure for layered architecture: controller/presentation, business/service, data access/repository, domain/entity, DTO/mapper, configuration, and exception packages.
