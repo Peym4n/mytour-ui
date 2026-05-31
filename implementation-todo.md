@@ -34,17 +34,17 @@ Checklist requirements from `TourPlanner_Checklist_Intermediate.xlsx`:
 
 - [x] Must have: uses Angular as frontend framework.
 - [x] Must have: uses MVVM for UI.
-- [ ] GUI: correct data binding between UI elements and view model properties.
-- [ ] GUI: UI responds to window size changes.
-- [ ] GUI: defines a reusable UI component.
-- [ ] Tours: create, modify, and delete tours.
-- [ ] Tours: tours have required attributes, including image, and are managed in a list view.
-- [ ] Tours: tour details show all tour attributes of a selected tour and a map placeholder.
-- [ ] Tours: validates user input with no crash on wrong input.
-- [ ] Tour Logs: create, modify, and delete tour logs.
-- [ ] Tour Logs: tour logs have required attributes.
-- [ ] Tour Logs: show all logs of a selected tour with all log attributes in a list view.
-- [ ] Tour Logs: validates user input with no crash on wrong input.
+- [x] GUI: correct data binding between UI elements and view model properties.
+- [x] GUI: UI responds to window size changes.
+- [x] GUI: defines a reusable UI component.
+- [x] Tours: create, modify, and delete tours.
+- [x] Tours: tours have required attributes, including image, and are managed in a list view.
+- [x] Tours: tour details show all tour attributes of a selected tour and a map placeholder.
+- [x] Tours: validates user input with no crash on wrong input.
+- [x] Tour Logs: create, modify, and delete tour logs.
+- [x] Tour Logs: tour logs have required attributes.
+- [x] Tour Logs: show all logs of a selected tour with all log attributes in a list view.
+- [x] Tour Logs: validates user input with no crash on wrong input.
 - [ ] Protocol: describes UX and includes wireframes.
 
 Implementation tasks:
@@ -62,9 +62,12 @@ Implementation tasks:
 11. [x] Check MVVM-style separation: components bind to view-model state and delegate data operations to services instead of containing persistence logic directly.
 12. [x] Add a thin Spring Boot integration layer for intermediate safety: REST endpoints for tours and tour logs, even if backed by in-memory data for now.
 13. [x] Connect the Angular data services to the backend endpoints through environment-based API configuration.
-14. [ ] Verify frontend CRUD flows against the backend: create, update, delete, select, and display tours and logs.
-15. [ ] Test responsive behavior at mobile, tablet, and desktop widths.
-16. [ ] Add basic frontend tests or smoke checks for critical UI/service behavior if time allows.
+14. [x] Verify frontend CRUD flows against the backend: create, update, delete, select, and display tours and logs.
+    - Verified through the Angular UI against Docker Compose on 2026-05-31: created/updated/deleted a temporary tour, created/deleted a temporary log, and confirmed list/detail/log display with successful backend responses.
+15. [x] Test responsive behavior at mobile, tablet, and desktop widths.
+    - Verified with Chrome DevTools at desktop, tablet, and narrow viewport widths; no horizontal overflow was detected on the tour list or tour detail/log views.
+16. [x] Add basic frontend tests or smoke checks for critical UI/service behavior if time allows.
+    - Current frontend test suite passes with 14 tests covering health state, app shell, tour display helpers, tour list view model behavior, and tour form view model behavior.
 17. [ ] Create/update wireframes for the implemented UI flow and add them to the protocol.
 18. [ ] Write the intermediate protocol section describing UX decisions, wireframes, and the current frontend/backend integration boundary.
 19. [x] Run `npm run build` in `mytour-ui` and fix build errors.
