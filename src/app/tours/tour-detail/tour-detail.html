@@ -14,9 +14,25 @@
           <span pButtonLabel>Edit</span>
         </button>
       }
-      <button pButton type="button" class="p-button-sm" severity="danger" [outlined]="true" disabled>
-        <span pButtonLabel>Delete</span>
-      </button>
+      @if (tourVm.tourView(); as deleteTour) {
+        <button
+          pButton
+          type="button"
+          class="p-button-sm"
+          severity="danger"
+          [outlined]="true"
+          [loading]="tourVm.deletingTour()"
+          [disabled]="tourVm.deletingTour()"
+          [attr.aria-label]="'Delete ' + deleteTour.name"
+          (click)="tourVm.deleteTour(deleteTour.id)"
+        >
+          <span pButtonLabel>Delete</span>
+        </button>
+      } @else {
+        <button pButton type="button" class="p-button-sm" severity="danger" [outlined]="true" disabled>
+          <span pButtonLabel>Delete</span>
+        </button>
+      }
     </div>
   </div>
 

@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { take } from 'rxjs';
 
 import { TourLogDto } from '../../api/generated/models/tour-log-dto';
@@ -86,10 +87,12 @@ interface TourLogRow {
 export class TourDetailViewModel {
   private readonly toursApi = inject(ToursService);
   private readonly tourLogsApi = inject(TourLogsService);
+  private readonly router = inject(Router);
   private readonly tourState = signal<TourDetailDto | null>(null);
   private readonly logsState = signal<TourLogDto[]>([]);
   private readonly loadingState = signal(false);
   private readonly logsLoadingState = signal(false);
+  private readonly deletingTourState = signal(false);
   private readonly deletingLogIdState = signal<number | null>(null);
   private readonly errorMessageState = signal<string | null>(null);
   private readonly logsErrorMessageState = signal<string | null>(null);
@@ -99,6 +102,7 @@ export class TourDetailViewModel {
   readonly logs = this.logsState.asReadonly();
   readonly loading = this.loadingState.asReadonly();
   readonly logsLoading = this.logsLoadingState.asReadonly();
+  readonly deletingTour = this.deletingTourState.asReadonly();
   readonly deletingLogId = this.deletingLogIdState.asReadonly();
   readonly errorMessage = this.errorMessageState.asReadonly();
   readonly logsErrorMessage = this.logsErrorMessageState.asReadonly();
@@ -152,9 +156,33 @@ export class TourDetailViewModel {
     this.logsState.set([]);
     this.loadingState.set(false);
     this.logsLoadingState.set(false);
+    this.deletingTourState.set(false);
     this.deletingLogIdState.set(null);
     this.noticeMessageState.set(null);
     this.errorMessageState.set('The selected tour id is invalid.');
+  }
+
+  deleteTour(tourId: number | undefined): void {
+    this.errorMessageState.set(null);
+    this.noticeMessageState.set(null);
+
+    if (!this.isPositiveInteger(tourId)) {
+      this.errorMessageState.set('The selected tour id is invalid.');
+      return;
+    }
+
+    this.deletingTourState.set(true);
+
+    this.toursApi.deleteTour({ tourId }).pipe(take(1)).subscribe({
+      next: () => {
+        this.deletingTourState.set(false);
+        void this.router.navigate(['/tours']);
+      },
+      error: () => {
+        this.deletingTourState.set(false);
+        this.errorMessageState.set('The tour could not be deleted. Please check the backend connection.');
+      }
+    });
   }
 
   deleteLog(tourId: number | undefined, logId: number | undefined): void {
