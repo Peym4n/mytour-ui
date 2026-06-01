@@ -41,6 +41,20 @@ The main UX decisions are:
 - **Intermediate placeholders:** Cover image and route map handling are visible as placeholders, because the real upload/map integration belongs to the final implementation phase.
 - **Responsive layout:** Desktop views use multi-column layouts, while mobile screens collapse content into one column.
 
+### Frontend Implementation Decisions
+
+The frontend decisions from the implementation plan are reflected in the intermediate UI as follows:
+
+- **Angular with MVVM-style separation:** Components bind to view-model services instead of containing backend or persistence logic directly.
+- **Generated API client:** The Angular frontend uses generated API services and environment-based configuration to communicate with the Spring Boot backend.
+- **Intermediate backend boundary:** The UI already calls backend endpoints for tour and tour-log CRUD. The same frontend service boundary can later be kept when persistence, authentication, and external APIs are expanded for the final hand-in.
+- **Cover image handling:** The UI supports one cover image concept per tour through visible placeholders and metadata. Functional upload and filesystem storage are planned for the final implementation.
+- **Route/map handling:** The intermediate UI shows a clear map placeholder. The final implementation will replace it with OpenRouteService route data and Leaflet rendering.
+- **Time and timezone handling:** Tours include a timezone field so date/time values can later be displayed consistently for the tour location.
+- **Transport types:** The UI uses the required transport categories: Bike, Hike, Running, and Vacation.
+- **Tour-log values:** Difficulty and rating are handled as 1-to-5 values with user-friendly labels in the form.
+- **Computed attributes:** Popularity and family suitability are visible in the detail UI as labels. The final implementation will complete the underlying score calculation and search integration.
+
 ## 3. Wireframes And Mockups
 
 The following wireframes document the intended UI flow for the intermediate hand-in. The generated mockups below were created based on these wireframes and used as visual references while refining the implemented Angular UI. The generated mockups are not exact screenshots; they document the intended layout direction and interaction model.
