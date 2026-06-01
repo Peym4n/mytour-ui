@@ -134,17 +134,33 @@ $replaced = $markdown.Substring(0, $match.Groups[2].Index) +
   [Environment]::NewLine +
   $markdown.Substring($match.Groups[2].Index + $match.Groups[2].Length)
 
+$tocPattern = '(?m)^## 1\. Intermediate Scope\s*$'
+$tocMatch = [regex]::Match($replaced, $tocPattern)
+if (-not $tocMatch.Success) {
+  throw "Could not find the first numbered section for table-of-contents placement."
+}
+
+$tocBlock = @'
+\tableofcontents
+\clearpage
+
+'@
+
+$replaced = $replaced.Substring(0, $tocMatch.Index) +
+  $tocBlock +
+  $replaced.Substring($tocMatch.Index)
+
 try {
   Remove-Item -Force -LiteralPath $tempPdf -ErrorAction SilentlyContinue
   Set-Content -LiteralPath $tempFile -Value $replaced -Encoding UTF8
 
   & pandoc $tempFile `
-    --from markdown+raw_tex `
+    --from markdown+raw_tex-implicit_figures `
     --to pdf `
     --resource-path $docsDir `
-    --toc `
     -V papersize:a4 `
     -V geometry:margin=2cm `
+    -V float-placement=H `
     --output $tempPdf
 
   if ($LASTEXITCODE -ne 0) {

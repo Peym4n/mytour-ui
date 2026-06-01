@@ -310,5 +310,6 @@ The following items are intentionally left for the final submission:
 Git history is part of the documentation, as stated in the project description.
 
 Repository links:
-- Frontend: https://github.com/tarik-yilmaz/mytour-ui
-- Backend: https://github.com/tarik-yilmaz/mytour-api
+
+- **Frontend:** <https://github.com/tarik-yilmaz/mytour-ui>
+- **Backend:** <https://github.com/tarik-yilmaz/mytour-api>
