@@ -1,6 +1,6 @@
 param(
   [string]$InputPath = (Join-Path $PSScriptRoot "..\intermediate-protocol.md"),
-  [string]$OutputPath = (Join-Path $PSScriptRoot "..\intermediate-protocol.pdf")
+  [string]$OutputPath = (Join-Path $PSScriptRoot "..\..\..\intermediate-protocol.pdf")
 )
 
 $ErrorActionPreference = "Stop"
