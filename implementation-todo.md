@@ -45,7 +45,7 @@ Checklist requirements from `TourPlanner_Checklist_Intermediate.xlsx`:
 - [x] Tour Logs: tour logs have required attributes.
 - [x] Tour Logs: show all logs of a selected tour with all log attributes in a list view.
 - [x] Tour Logs: validates user input with no crash on wrong input.
-- [ ] Protocol: describes UX and includes wireframes.
+- [x] Protocol: describes UX and includes wireframes.
 
 Implementation tasks:
 
@@ -68,13 +68,13 @@ Implementation tasks:
     - Verified with Chrome DevTools at desktop, tablet, and narrow viewport widths; no horizontal overflow was detected on the tour list or tour detail/log views.
 16. [x] Add basic frontend tests or smoke checks for critical UI/service behavior if time allows.
     - Current frontend test suite passes with 14 tests covering health state, app shell, tour display helpers, tour list view model behavior, and tour form view model behavior.
-17. [ ] Create/update wireframes for the implemented UI flow and add them to the protocol.
+17. [x] Create/update wireframes for the implemented UI flow and add them to the protocol.
     - Wireframes were created in `docs/intermediate-wireframes.md`
-18. [ ] Write the intermediate protocol section describing UX decisions, wireframes, and the current frontend/backend integration boundary.
+18. [x] Write the intermediate protocol section describing UX decisions, wireframes, and the current frontend/backend integration boundary.
 19. [x] Run `npm run build` in `mytour-ui` and fix build errors.
 20. [x] Run the backend locally and verify the Angular app can reach it from a clean start.
 21. [x] Update README hand-in instructions: how to start backend, how to start frontend, expected environment variables.
-22. [ ] Create the intermediate zip/source snapshot and check that it contains the latest code and README.
+22. [x] Create the intermediate zip/source snapshot and check that it contains the latest code and README.
 
 ## Full Hand-In TODO
 
