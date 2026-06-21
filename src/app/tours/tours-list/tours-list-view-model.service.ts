@@ -1,5 +1,6 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
-import { take } from 'rxjs';
+import { DestroyRef, computed, inject, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, debounce, from, map, of, Subject, switchMap, take, tap, timer } from 'rxjs';
 
 import { SearchTours$Params } from '../../api/generated/fn/tours/search-tours';
 import { ToursService } from '../../api/generated/services/tours.service';
@@ -18,8 +19,13 @@ import {
 
 export type TourTransportFilter = TourTransportType | '';
 type TourDataSource = 'api' | 'intermediate';
+type TourLoadResult =
+  | { readonly kind: 'api'; readonly tours: TourSummaryDto[] }
+  | { readonly kind: 'unreadable-api' }
+  | { readonly kind: 'unavailable-api' };
 
 const INTERMEDIATE_TOURS = INTERMEDIATE_TOUR_DETAILS.map(toTourSummary);
+const SEARCH_DEBOUNCE_MS = 250;
 
 export interface TourListRow {
   readonly tour: TourSummaryDto;
@@ -47,6 +53,7 @@ export interface TourListRow {
   providedIn: 'root'
 })
 export class ToursListViewModel {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly toursApi = inject(ToursService);
   private readonly localToursState = signal<TourSummaryDto[]>(INTERMEDIATE_TOURS);
   private readonly toursState = signal<TourSummaryDto[]>([]);
@@ -58,6 +65,7 @@ export class ToursListViewModel {
   private readonly errorMessageState = signal<string | null>(null);
   private readonly noticeMessageState = signal<string | null>(null);
   private readonly dataSourceState = signal<TourDataSource>('api');
+  private readonly tourLoadRequests = new Subject<number>();
 
   readonly tours = this.toursState.asReadonly();
   readonly selectedTourId = this.selectedTourIdState.asReadonly();
@@ -103,39 +111,29 @@ export class ToursListViewModel {
 
   readonly visibleTourCount = computed(() => this.tourRows().length);
 
-  loadTours(): void {
-    this.loadingState.set(true);
-    this.errorMessageState.set(null);
-    this.pendingDeleteIdState.set(null);
-
-    this.toursApi.searchTours(this.buildSearchParams()).pipe(take(1)).subscribe({
-      next: (response) => {
-        void this.resolveTours(response).then((tours) => {
-          if (tours === null) {
-            this.useIntermediateTours('The API response is not readable by the generated client yet. Showing intermediate tour data.');
-            return;
-          }
-
-          this.dataSourceState.set('api');
-          this.noticeMessageState.set(null);
-          this.applyTours(tours);
-          this.loadingState.set(false);
-        }).catch(() => {
-          this.useIntermediateTours('The API response is not readable by the generated client yet. Showing intermediate tour data.');
-        });
-      },
-      error: () => {
-        this.useIntermediateTours('The tour backend is not available yet. Showing intermediate tour data.');
-      }
+  constructor() {
+    this.tourLoadRequests.pipe(
+      debounce((debounceMs) => debounceMs > 0 ? timer(debounceMs) : of(0)),
+      tap(() => this.beginTourLoad()),
+      switchMap(() => this.searchTours()),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((result) => {
+      this.applyLoadResult(result);
     });
+  }
+
+  loadTours(): void {
+    this.requestTourLoad(0);
   }
 
   setSearchQuery(query: string): void {
     this.searchQueryState.set(query);
+    this.requestTourLoad(SEARCH_DEBOUNCE_MS);
   }
 
   setTransportFilter(filter: TourTransportFilter): void {
     this.transportFilterState.set(filter);
+    this.requestTourLoad(0);
   }
 
   applyFilters(): void {
@@ -211,6 +209,49 @@ export class ToursListViewModel {
     }
 
     return Object.keys(params).length > 0 ? params : undefined;
+  }
+
+  private requestTourLoad(debounceMs: number): void {
+    this.tourLoadRequests.next(debounceMs);
+  }
+
+  private beginTourLoad(): void {
+    this.loadingState.set(true);
+    this.errorMessageState.set(null);
+    this.pendingDeleteIdState.set(null);
+  }
+
+  private searchTours() {
+    return this.toursApi.searchTours(this.buildSearchParams()).pipe(
+      switchMap((response) => from(this.resolveTours(response)).pipe(
+        map((tours): TourLoadResult => {
+          if (tours === null) {
+            return { kind: 'unreadable-api' };
+          }
+
+          return { kind: 'api', tours };
+        }),
+        catchError(() => of<TourLoadResult>({ kind: 'unreadable-api' }))
+      )),
+      catchError(() => of<TourLoadResult>({ kind: 'unavailable-api' }))
+    );
+  }
+
+  private applyLoadResult(result: TourLoadResult): void {
+    if (result.kind === 'api') {
+      this.dataSourceState.set('api');
+      this.noticeMessageState.set(null);
+      this.applyTours(result.tours);
+      this.loadingState.set(false);
+      return;
+    }
+
+    if (result.kind === 'unreadable-api') {
+      this.useIntermediateTours('The API response is not readable by the generated client yet. Showing intermediate tour data.');
+      return;
+    }
+
+    this.useIntermediateTours('The tour backend is not available yet. Showing intermediate tour data.');
   }
 
   private useIntermediateTours(message: string): void {

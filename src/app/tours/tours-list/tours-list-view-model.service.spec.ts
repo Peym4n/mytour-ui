@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { throwError, of } from 'rxjs';
+import { Subject, throwError, of } from 'rxjs';
 
 import { TourSearchResponse } from '../../api/generated/models/tour-search-response';
 import { ToursService } from '../../api/generated/services/tours.service';
@@ -23,6 +23,10 @@ describe('ToursListViewModel', () => {
         { provide: ToursService, useValue: toursApi }
       ]
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('loads tours from the generated API and exposes computed display rows', async () => {
@@ -82,6 +86,99 @@ describe('ToursListViewModel', () => {
       transportType: 'HIKE'
     });
     expect(viewModel.hasFilters()).toBe(true);
+  });
+
+  it('updates tours for the active search query after a debounce', async () => {
+    vi.useFakeTimers();
+    toursApi.searchTours.mockReturnValue(of({
+      tours: [
+        {
+          id: 9,
+          name: 'Family Hike',
+          startLocation: 'Nussdorf',
+          endLocation: 'Kahlenberg',
+          transportType: 'HIKE'
+        }
+      ]
+    }));
+
+    const viewModel = TestBed.inject(ToursListViewModel);
+    viewModel.setSearchQuery(' family ');
+
+    expect(toursApi.searchTours).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(250);
+    await flushPromises();
+
+    expect(toursApi.searchTours).toHaveBeenCalledWith({ q: 'family' });
+    expect(viewModel.tourRows()).toEqual([
+      expect.objectContaining({
+        id: 9,
+        name: 'Family Hike'
+      })
+    ]);
+    vi.useRealTimers();
+  });
+
+  it('refreshes immediately when the transport filter changes', async () => {
+    toursApi.searchTours.mockReturnValue(of({ tours: [] }));
+
+    const viewModel = TestBed.inject(ToursListViewModel);
+    viewModel.setTransportFilter('RUNNING');
+    await flushPromises();
+
+    expect(toursApi.searchTours).toHaveBeenCalledWith({ transportType: 'RUNNING' });
+  });
+
+  it('keeps the newest search result when an older request completes later', async () => {
+    vi.useFakeTimers();
+    const oldSearchResponse = new Subject<TourSearchResponse>();
+    toursApi.searchTours
+      .mockReturnValueOnce(oldSearchResponse.asObservable())
+      .mockReturnValueOnce(of({
+        tours: [
+          {
+            id: 2,
+            name: 'Newest result',
+            startLocation: 'Stadtpark',
+            endLocation: 'Rathausplatz',
+            transportType: 'RUNNING'
+          }
+        ]
+      }));
+
+    const viewModel = TestBed.inject(ToursListViewModel);
+    viewModel.setSearchQuery('old');
+    vi.advanceTimersByTime(250);
+    await flushPromises();
+
+    viewModel.setSearchQuery('newest');
+    vi.advanceTimersByTime(250);
+    await flushPromises();
+
+    oldSearchResponse.next({
+      tours: [
+        {
+          id: 1,
+          name: 'Old result',
+          startLocation: 'Wien',
+          endLocation: 'Tulln',
+          transportType: 'BIKE'
+        }
+      ]
+    });
+    oldSearchResponse.complete();
+    await flushPromises();
+
+    expect(toursApi.searchTours).toHaveBeenNthCalledWith(1, { q: 'old' });
+    expect(toursApi.searchTours).toHaveBeenNthCalledWith(2, { q: 'newest' });
+    expect(viewModel.tourRows()).toEqual([
+      expect.objectContaining({
+        id: 2,
+        name: 'Newest result'
+      })
+    ]);
+    vi.useRealTimers();
   });
 
   it('falls back to intermediate tours when the backend is unavailable', async () => {

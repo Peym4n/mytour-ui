@@ -109,7 +109,9 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [x] Full-Text Search: search performs full-text search in tours, tour logs, and computed attributes.
   - Active intermediate search tokenizes tour fields, log fields, weather text, and computed labels through `IntermediateTourSearchIndex`.
   - PostgreSQL schema already includes GIN `to_tsvector` indexes for tours, tour logs, and tour log weather.
-- [ ] Full-Text Search: list of tours according to current search.
+- [x] Full-Text Search: list of tours according to current search.
+  - Tour list ViewModel now refreshes the list from the active search query automatically with debounce.
+  - Manual Apply/Refresh and transport-filter changes still trigger immediate reloads.
 - [ ] Import/Export: export tour data.
 - [ ] Import/Export: import tour data.
 - [ ] Mandatory unique feature.
@@ -192,7 +194,11 @@ Implementation tasks:
    - Wired `q` and `ratingMin` through the backend search path.
    - Existing PostgreSQL migration already includes separate GIN full-text indexes for tours, tour logs, and tour log weather.
    - Added service tests for log-comment search, mixed tour/log query terms, computed-label search, rating filters, and dynamic log index updates.
-18. [ ] Ensure the tour list updates according to the active search query.
+18. [x] Ensure the tour list updates according to the active search query.
+   - Added a debounced latest-request-wins search flow in `ToursListViewModel`.
+   - Search input changes now trigger backend search automatically after a short debounce.
+   - Transport-filter changes, Apply, Refresh, and Delete reloads still run immediately.
+   - Added ViewModel tests for debounced search, immediate transport-filter refresh, and stale response handling.
 19. [ ] Implement export of tour data in the chosen file format.
 20. [ ] Implement import of tour data with validation and useful error reporting.
 21. [ ] Implement the mandatory unique feature and make it visible in the UI.
@@ -212,7 +218,7 @@ Implementation tasks:
 28. [ ] Complete protocol sections for library decisions, lessons learned, design pattern, unit test decisions, unique feature, tracked time, and Git link.
 29. [ ] Run backend unit tests and fix failures.
 30. [ ] Run frontend build/tests and fix failures.
-   - Frontend build passes; frontend tests have not been run yet.
+   - Frontend build and tests passed for Task 18 on 2026-06-21; final full-stack verification still belongs to the final packaging pass.
 31. [ ] Run a clean end-to-end manual test from empty database: register, login, create tour, fetch route/map, add logs, fetch weather snapshot, search, filter, import, export, edit, delete.
 32. [ ] Confirm final must-haves one by one against the checklist before packaging.
 33. [ ] Update README with final setup: database, environment variables, external image directory, backend start, frontend start, tests, and known assumptions.
