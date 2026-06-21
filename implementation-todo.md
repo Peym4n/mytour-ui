@@ -169,7 +169,11 @@ Implementation tasks:
    - Added `LeafletMapFacade` to keep Leaflet setup, tile layers, route rendering, endpoint markers, bounds fitting, and cleanup outside feature components.
    - Replaced the old static map placeholder with a deferred map component and lightweight loading state.
    - Added a browser-safety unit test for the map facade.
-15. [ ] Store the cover image externally on the filesystem and store only metadata/path references in the database.
+15. [x] Store the cover image externally on the filesystem and store only metadata/path references in the database.
+   - Added configurable filesystem storage through `storage.images.*`.
+   - Implemented upload/delete for `PUT /api/tours/{tourId}/cover-image` and `DELETE /api/tours/{tourId}/cover-image`.
+   - Stored files below the configured image directory with generated safe names and kept only `CoverImageDto` metadata/path references on the tour.
+   - Current intermediate service keeps that metadata in memory until the PostgreSQL-backed DAL task is completed; the existing `tours` table/entity already has the matching metadata columns.
 16. [ ] Implement computed tour attributes: popularity from log count and child-friendliness from difficulty, time, and distance.
    - Store numeric scores for sorting/calculation and non-overlapping text labels for search/display.
    - Avoid searchable negated labels like `not child friendly`; prefer labels such as `family friendly`, `moderate family suitability`, `challenging route`, and `adult oriented`.
