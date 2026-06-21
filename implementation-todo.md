@@ -84,7 +84,7 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [x] Must have: uses Angular as frontend framework.
 - [x] Must have: uses MVVM for UI.
 - [x] Must have: implements a layer-based architecture (UI/BL/DAL).
-- [ ] Must have: implements at least one design pattern.
+- [x] Must have: implements at least one design pattern.
 - [x] Must have: uses a Postgres database for storing tour data.
 - [ ] Must have: does not allow for SQL injection.
 - [x] Must have: uses an OR-mapping library.
@@ -153,7 +153,10 @@ Implementation tasks:
 11. [x] Add centralized exception handling so implementation-specific exceptions do not escape across layers.
    - Added `ApiExceptionHandler` in `mytour-api/src/main/java/org/fhtw/mytourapi/exception` to map `ResponseStatusException`, validation errors, malformed requests, and unexpected failures to the existing `ApiErrorResponse` DTO.
    - Added focused MVC tests for structured 404 and validation responses in `ApiExceptionHandlerTest`.
-12. [ ] Add a design pattern intentionally and document it, for example repository, strategy, factory, adapter, or mapper.
+12. [x] Add a design pattern intentionally and document it, for example repository, strategy, factory, adapter, or mapper.
+   - Implemented the Factory pattern with `ApiErrorResponseFactory`, which centralizes construction of structured API error responses.
+   - Refactored `ApiExceptionHandler` to use the factory and keep exception classification separate from response construction.
+   - Added `ApiErrorResponseFactoryTest` to verify the factory contract directly.
 13. [ ] Integrate OpenRouteService Directions API for distance, estimated time, and route data.
    - Store route geometry as GeoJSON in a PostgreSQL `jsonb` column.
 14. [ ] Integrate Leaflet in the Angular UI for actual map display instead of the intermediate placeholder.
