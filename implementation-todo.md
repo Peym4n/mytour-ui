@@ -91,7 +91,7 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [x] Must have: uses configuration, not code, at minimum for the DB connection string.
 - [x] Must have: integrates the OpenRouteServices.org API and Leaflet.
 - [x] Must have: implements at least 20 unit tests.
-  - Backend test suite currently passes with 32 tests after the import-compatible export correction.
+  - Backend test suite currently passes with 37 tests after the import implementation.
 - [x] GUI: correct data binding between UI elements and view model properties.
 - [ ] GUI: UI responds to window size changes.
 - [x] GUI: defines a reusable UI component.
@@ -114,7 +114,8 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
   - Manual Apply/Refresh and transport-filter changes still trigger immediate reloads.
 - [x] Import/Export: export tour data.
   - `GET /api/tours/export` returns the chosen JSON export format with schema version, export timestamp, import-compatible tours, route data, cover-image metadata, logs, and weather snapshots.
-- [ ] Import/Export: import tour data.
+- [x] Import/Export: import tour data.
+  - `POST /api/tours/import` validates schema and import payloads, preserves route/weather snapshots, and returns imported counts plus created tour IDs.
 - [ ] Mandatory unique feature.
 - [ ] Non-functional: layers only call methods of the immediate layer below or own methods.
 - [ ] Non-functional: layers define their own exceptions, no implementation-specific exceptions escape.
@@ -206,7 +207,12 @@ Implementation tasks:
    - Export includes stable tour ordering, import-compatible tour request data, route data, cover-image metadata, logs, and weather snapshots.
    - Internal ids, user ids, and version fields are not exported in the importable tour/log payload.
    - Added service, controller, and export-to-import-shape tests for the export payload.
-20. [ ] Implement import of tour data with validation and useful error reporting.
+20. [x] Implement import of tour data with validation and useful error reporting.
+   - Added `TourImportService` for the JSON import use case.
+   - `POST /api/tours/import` now imports tours, route data, cover-image metadata, logs, and weather snapshots from the export format.
+   - Import validates schema version, route/tour coordinate consistency, safe cover-image paths, and import payload completeness before creating data.
+   - Added structured import validation errors through `ImportValidationException`.
+   - Added service and controller tests for successful roundtrip import and useful validation errors.
 21. [ ] Implement the mandatory unique feature and make it visible in the UI.
    - Unique feature: automatic weather snapshot based on the location and time of each tour log.
    - Persist weather data in a one-to-one `tour_log_weather` table linked to `tour_logs`.
