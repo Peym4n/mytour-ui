@@ -199,15 +199,15 @@
 
       <article class="detail-section detail-section--map">
         <h2>Route Map</h2>
-        <div class="map-placeholder" aria-label="Route map preview">
-          <span class="map-water"></span>
-          <span class="map-park"></span>
-          <span class="map-pin map-pin--start"></span>
-          <span class="map-line"></span>
-          <span class="map-pin map-pin--end"></span>
-          <span class="map-label map-label--start">Start</span>
-          <span class="map-label map-label--end">End</span>
-        </div>
+        @if (tourView.tour.route; as routeMap) {
+          @defer (on viewport) {
+            <app-tour-map [route]="routeMap" />
+          } @placeholder {
+            <div class="map-loading" aria-label="Route map loading"></div>
+          } @loading {
+            <div class="map-loading" aria-label="Route map loading"></div>
+          }
+        }
         @if (tourView.routeData; as route) {
           <dl class="detail-rows">
             <div>
