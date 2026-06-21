@@ -91,7 +91,7 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [x] Must have: uses configuration, not code, at minimum for the DB connection string.
 - [x] Must have: integrates the OpenRouteServices.org API and Leaflet.
 - [x] Must have: implements at least 20 unit tests.
-  - Backend test suite currently passes with 24 tests after the computed-attributes implementation.
+  - Backend test suite currently passes with 28 tests after the full-text search implementation.
 - [x] GUI: correct data binding between UI elements and view model properties.
 - [ ] GUI: UI responds to window size changes.
 - [x] GUI: defines a reusable UI component.
@@ -106,7 +106,9 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [x] Tour Logs: tour logs have required attributes.
 - [x] Tour Logs: show all logs of a selected tour with all log attributes in a list view.
 - [x] Tour Logs: validates user input with no crash on wrong input.
-- [ ] Full-Text Search: search performs full-text search in tours, tour logs, and computed attributes.
+- [x] Full-Text Search: search performs full-text search in tours, tour logs, and computed attributes.
+  - Active intermediate search tokenizes tour fields, log fields, weather text, and computed labels through `IntermediateTourSearchIndex`.
+  - PostgreSQL schema already includes GIN `to_tsvector` indexes for tours, tour logs, and tour log weather.
 - [ ] Full-Text Search: list of tours according to current search.
 - [ ] Import/Export: export tour data.
 - [ ] Import/Export: import tour data.
@@ -183,9 +185,13 @@ Implementation tasks:
    - Added `TourAttributeCalculator` for deterministic popularity and child-friendliness calculation.
    - Recompute tour attributes whenever intermediate tour logs are created, updated, or deleted.
    - Added focused calculator and service tests for the formulas and log-driven refresh behavior.
-17. [ ] Implement full-text search across tours, tour logs, and computed attributes.
+17. [x] Implement full-text search across tours, tour logs, and computed attributes.
    - Include computed labels like popularity and child-friendliness in the PostgreSQL search document.
    - Add structured filters for exact category matching where full-text search would be ambiguous.
+   - Added an intermediate tokenized search index covering tour fields, computed attributes, tour log comments/metrics, and weather text.
+   - Wired `q` and `ratingMin` through the backend search path.
+   - Existing PostgreSQL migration already includes separate GIN full-text indexes for tours, tour logs, and tour log weather.
+   - Added service tests for log-comment search, mixed tour/log query terms, computed-label search, rating filters, and dynamic log index updates.
 18. [ ] Ensure the tour list updates according to the active search query.
 19. [ ] Implement export of tour data in the chosen file format.
 20. [ ] Implement import of tour data with validation and useful error reporting.
