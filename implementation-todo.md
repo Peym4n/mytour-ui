@@ -150,7 +150,9 @@ Implementation tasks:
    - Do not require email addresses, email verification, or email sending.
    - Enforce case-insensitive unique usernames through `username_normalized`.
 10. [x] Add backend validation for all incoming tour and tour log DTOs, matching frontend validation where possible.
-11. [ ] Add centralized exception handling so implementation-specific exceptions do not escape across layers.
+11. [x] Add centralized exception handling so implementation-specific exceptions do not escape across layers.
+   - Added `ApiExceptionHandler` in `mytour-api/src/main/java/org/fhtw/mytourapi/exception` to map `ResponseStatusException`, validation errors, malformed requests, and unexpected failures to the existing `ApiErrorResponse` DTO.
+   - Added focused MVC tests for structured 404 and validation responses in `ApiExceptionHandlerTest`.
 12. [ ] Add a design pattern intentionally and document it, for example repository, strategy, factory, adapter, or mapper.
 13. [ ] Integrate OpenRouteService Directions API for distance, estimated time, and route data.
    - Store route geometry as GeoJSON in a PostgreSQL `jsonb` column.
