@@ -110,7 +110,7 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [ ] Mandatory unique feature.
 - [ ] Non-functional: layers only call methods of the immediate layer below or own methods.
 - [ ] Non-functional: layers define their own exceptions, no implementation-specific exceptions escape.
-- [ ] Non-functional: uses the OpenRouteServices.org Directions API for tour retrieval.
+- [x] Non-functional: uses the OpenRouteServices.org Directions API for tour retrieval.
 - [ ] Non-functional: uses Leaflet for the map.
 - [ ] Non-functional: all tour data, maybe except image data, is stored in the database.
 - [x] Non-functional: all configuration information is stored in configuration, not in code.
@@ -157,8 +157,12 @@ Implementation tasks:
    - Implemented the Factory pattern with `ApiErrorResponseFactory`, which centralizes construction of structured API error responses.
    - Refactored `ApiExceptionHandler` to use the factory and keep exception classification separate from response construction.
    - Added `ApiErrorResponseFactoryTest` to verify the factory contract directly.
-13. [ ] Integrate OpenRouteService Directions API for distance, estimated time, and route data.
+13. [x] Integrate OpenRouteService Directions API for distance, estimated time, and route data.
    - Store route geometry as GeoJSON in a PostgreSQL `jsonb` column.
+   - Added configurable backend OpenRouteService client settings through `clients.openrouteservice.*` and `.env.example` values.
+   - Added an OpenRouteService Directions client for `/v2/directions/{profile}/geojson`, mapping GeoJSON summary distance/duration and route geometry into `TourRouteDto`.
+   - Wired tour create/update and `POST /api/tours/{tourId}/route/refresh` through route calculation.
+   - Kept a local fallback route calculation when no `ORS_API_KEY` is configured so local tests and demos still start cleanly.
 14. [ ] Integrate Leaflet in the Angular UI for actual map display instead of the intermediate placeholder.
 15. [ ] Store the cover image externally on the filesystem and store only metadata/path references in the database.
 16. [ ] Implement computed tour attributes: popularity from log count and child-friendliness from difficulty, time, and distance.
