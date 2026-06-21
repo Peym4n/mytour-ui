@@ -90,13 +90,16 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [x] Must have: uses an OR-mapping library.
 - [x] Must have: uses configuration, not code, at minimum for the DB connection string.
 - [x] Must have: integrates the OpenRouteServices.org API and Leaflet.
-- [ ] Must have: implements at least 20 unit tests.
+- [x] Must have: implements at least 20 unit tests.
+  - Backend test suite currently passes with 24 tests after the computed-attributes implementation.
 - [x] GUI: correct data binding between UI elements and view model properties.
 - [ ] GUI: UI responds to window size changes.
 - [x] GUI: defines a reusable UI component.
 - [ ] Tours: create, modify, and delete tours, also in DAL.
 - [x] Tours: tours have required attributes, including image, and are managed in a list view.
-- [ ] Tours: tours have computed attributes.
+- [x] Tours: tours have computed attributes.
+  - Popularity is calculated from tour log count.
+  - Child-friendliness is calculated from average difficulty, total time, and total distance.
 - [x] Tours: tour details show all tour attributes of a selected tour and also the map image.
 - [x] Tours: validates user input with no crash on wrong input.
 - [ ] Tour Logs: create, modify, and delete tour logs, also in DAL.
@@ -174,9 +177,12 @@ Implementation tasks:
    - Implemented upload/delete for `PUT /api/tours/{tourId}/cover-image` and `DELETE /api/tours/{tourId}/cover-image`.
    - Stored files below the configured image directory with generated safe names and kept only `CoverImageDto` metadata/path references on the tour.
    - Current intermediate service keeps that metadata in memory until the PostgreSQL-backed DAL task is completed; the existing `tours` table/entity already has the matching metadata columns.
-16. [ ] Implement computed tour attributes: popularity from log count and child-friendliness from difficulty, time, and distance.
+16. [x] Implement computed tour attributes: popularity from log count and child-friendliness from difficulty, time, and distance.
    - Store numeric scores for sorting/calculation and non-overlapping text labels for search/display.
    - Avoid searchable negated labels like `not child friendly`; prefer labels such as `family friendly`, `moderate family suitability`, `challenging route`, and `adult oriented`.
+   - Added `TourAttributeCalculator` for deterministic popularity and child-friendliness calculation.
+   - Recompute tour attributes whenever intermediate tour logs are created, updated, or deleted.
+   - Added focused calculator and service tests for the formulas and log-driven refresh behavior.
 17. [ ] Implement full-text search across tours, tour logs, and computed attributes.
    - Include computed labels like popularity and child-friendliness in the PostgreSQL search document.
    - Add structured filters for exact category matching where full-text search would be ambiguous.
