@@ -89,7 +89,7 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [ ] Must have: does not allow for SQL injection.
 - [x] Must have: uses an OR-mapping library.
 - [x] Must have: uses configuration, not code, at minimum for the DB connection string.
-- [ ] Must have: integrates the OpenRouteServices.org API and Leaflet.
+- [x] Must have: integrates the OpenRouteServices.org API and Leaflet.
 - [ ] Must have: implements at least 20 unit tests.
 - [x] GUI: correct data binding between UI elements and view model properties.
 - [ ] GUI: UI responds to window size changes.
@@ -97,7 +97,7 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [ ] Tours: create, modify, and delete tours, also in DAL.
 - [x] Tours: tours have required attributes, including image, and are managed in a list view.
 - [ ] Tours: tours have computed attributes.
-- [ ] Tours: tour details show all tour attributes of a selected tour and also the map image.
+- [x] Tours: tour details show all tour attributes of a selected tour and also the map image.
 - [x] Tours: validates user input with no crash on wrong input.
 - [ ] Tour Logs: create, modify, and delete tour logs, also in DAL.
 - [x] Tour Logs: tour logs have required attributes.
@@ -111,7 +111,7 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [ ] Non-functional: layers only call methods of the immediate layer below or own methods.
 - [ ] Non-functional: layers define their own exceptions, no implementation-specific exceptions escape.
 - [x] Non-functional: uses the OpenRouteServices.org Directions API for tour retrieval.
-- [ ] Non-functional: uses Leaflet for the map.
+- [x] Non-functional: uses Leaflet for the map.
 - [ ] Non-functional: all tour data, maybe except image data, is stored in the database.
 - [x] Non-functional: all configuration information is stored in configuration, not in code.
 - [ ] Non-functional: logs exceptions, errors, and other useful technical information.
@@ -163,7 +163,12 @@ Implementation tasks:
    - Added an OpenRouteService Directions client for `/v2/directions/{profile}/geojson`, mapping GeoJSON summary distance/duration and route geometry into `TourRouteDto`.
    - Wired tour create/update and `POST /api/tours/{tourId}/route/refresh` through route calculation.
    - Kept a local fallback route calculation when no `ORS_API_KEY` is configured so local tests and demos still start cleanly.
-14. [ ] Integrate Leaflet in the Angular UI for actual map display instead of the intermediate placeholder.
+14. [x] Integrate Leaflet in the Angular UI for actual map display instead of the intermediate placeholder.
+   - Added `leaflet` and `@types/leaflet` to the frontend dependencies.
+   - Added a `TourMapComponent` that renders `TourRouteDto` route data as a real Leaflet map in the tour detail view.
+   - Added `LeafletMapFacade` to keep Leaflet setup, tile layers, route rendering, endpoint markers, bounds fitting, and cleanup outside feature components.
+   - Replaced the old static map placeholder with a deferred map component and lightweight loading state.
+   - Added a browser-safety unit test for the map facade.
 15. [ ] Store the cover image externally on the filesystem and store only metadata/path references in the database.
 16. [ ] Implement computed tour attributes: popularity from log count and child-friendliness from difficulty, time, and distance.
    - Store numeric scores for sorting/calculation and non-overlapping text labels for search/display.
