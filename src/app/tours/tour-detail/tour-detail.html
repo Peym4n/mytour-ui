@@ -270,7 +270,68 @@
                   {{ logRow.performedAt }}
                 </time>
                 <p>{{ logRow.comment }}</p>
-                <span>{{ logRow.weather }}</span>
+                @if (logRow.weatherSnapshot; as weatherSnapshot) {
+                  <section class="weather-snapshot" aria-label="Weather snapshot">
+                    <div class="weather-snapshot__header">
+                      <div>
+                        <strong>Weather snapshot</strong>
+                        <span>{{ weatherSnapshot.summary }}</span>
+                      </div>
+                      @if (logRow.id; as logId) {
+                        <button
+                          pButton
+                          type="button"
+                          class="p-button-sm"
+                          severity="secondary"
+                          [outlined]="true"
+                          [loading]="tourVm.refreshingWeatherLogId() === logId"
+                          [disabled]="tourVm.refreshingWeatherLogId() !== null"
+                          [attr.aria-label]="logRow.weatherRefreshAriaLabel"
+                          (click)="tourVm.refreshWeather(tourView.id, logId)"
+                        >
+                          <span pButtonLabel>Refresh weather</span>
+                        </button>
+                      }
+                    </div>
+
+                    <dl class="log-row__facts">
+                      <div>
+                        <dt>Provider</dt>
+                        <dd>{{ weatherSnapshot.provider }}</dd>
+                      </div>
+                      <div>
+                        <dt>Observed</dt>
+                        <dd>{{ weatherSnapshot.observedAt }}</dd>
+                      </div>
+                      <div>
+                        <dt>Lookup</dt>
+                        <dd>{{ weatherSnapshot.lookupCoordinate }}</dd>
+                      </div>
+                      <div>
+                        <dt>Fetched</dt>
+                        <dd>{{ weatherSnapshot.fetchedAt }}</dd>
+                      </div>
+                      <div>
+                        <dt>Temperature</dt>
+                        <dd>{{ weatherSnapshot.temperature }}</dd>
+                      </div>
+                      <div>
+                        <dt>Humidity</dt>
+                        <dd>{{ weatherSnapshot.humidity }}</dd>
+                      </div>
+                      <div>
+                        <dt>Precipitation</dt>
+                        <dd>{{ weatherSnapshot.precipitation }}</dd>
+                      </div>
+                      <div>
+                        <dt>Wind</dt>
+                        <dd>{{ weatherSnapshot.wind }}</dd>
+                      </div>
+                    </dl>
+                  </section>
+                } @else {
+                  <span>{{ logRow.weather }}</span>
+                }
               </div>
 
               <dl class="log-row__facts">

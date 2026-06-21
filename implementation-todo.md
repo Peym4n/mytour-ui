@@ -91,7 +91,7 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [x] Must have: uses configuration, not code, at minimum for the DB connection string.
 - [x] Must have: integrates the OpenRouteServices.org API and Leaflet.
 - [x] Must have: implements at least 20 unit tests.
-  - Backend test suite currently passes with 37 tests after the import implementation.
+  - Backend test suite currently passes with 41 tests after the weather snapshot implementation.
 - [x] GUI: correct data binding between UI elements and view model properties.
 - [ ] GUI: UI responds to window size changes.
 - [x] GUI: defines a reusable UI component.
@@ -116,7 +116,10 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
   - `GET /api/tours/export` returns the chosen JSON export format with schema version, export timestamp, import-compatible tours, route data, cover-image metadata, logs, and weather snapshots.
 - [x] Import/Export: import tour data.
   - `POST /api/tours/import` validates schema and import payloads, preserves route/weather snapshots, and returns imported counts plus created tour IDs.
-- [ ] Mandatory unique feature.
+- [x] Mandatory unique feature.
+  - Tour logs get an automatic weather snapshot through the backend weather snapshot service.
+  - Open-Meteo archive data is used for historical hourly snapshots, with forecast-hourly fallback for recent/future log hours.
+  - The tour detail UI shows provider, dataset, observed/fetched time, lookup coordinate, temperature, humidity, precipitation, wind, and a refresh action.
 - [ ] Non-functional: layers only call methods of the immediate layer below or own methods.
 - [ ] Non-functional: layers define their own exceptions, no implementation-specific exceptions escape.
 - [x] Non-functional: uses the OpenRouteServices.org Directions API for tour retrieval.
@@ -213,15 +216,20 @@ Implementation tasks:
    - Import validates schema version, route/tour coordinate consistency, safe cover-image paths, and import payload completeness before creating data.
    - Added structured import validation errors through `ImportValidationException`.
    - Added service and controller tests for successful roundtrip import and useful validation errors.
-21. [ ] Implement the mandatory unique feature and make it visible in the UI.
+21. [x] Implement the mandatory unique feature and make it visible in the UI.
    - Unique feature: automatic weather snapshot based on the location and time of each tour log.
    - Persist weather data in a one-to-one `tour_log_weather` table linked to `tour_logs`.
    - Use the midpoint between tour start/end coordinates for the weather lookup.
    - Use Open-Meteo as the weather provider: historical hourly weather for older logs, and forecast/current endpoints as fallback for very recent logs if historical data is not available yet.
    - Store only the selected weather snapshot values needed by the application, not the full external API response.
    - Treat weather snapshots as generated immutable data; refetch and replace them when a log's performed time or route coordinates change.
+   - Added configurable Open-Meteo REST clients, a weather snapshot client, and a service-level fallback so local demos/tests do not depend on the network.
+   - Tour log create/update/refresh now replaces the generated weather snapshot through the weather snapshot service.
+   - Tour detail log rows now display the full weather snapshot and can call `POST /api/tours/{tourId}/logs/{logId}/weather/refresh`.
+   - The PostgreSQL schema/entity/repository for `tour_log_weather` already exists; full persistent TourLog CRUD remains in the later DAL tasks.
 22. [ ] Add logging for exceptions, errors, and useful technical events with the chosen Java logging setup.
-23. [ ] Add at least 20 useful unit tests covering critical business logic, controllers/services, validation, search, computed attributes, weather snapshots, import/export, and error handling.
+23. [x] Add at least 20 useful unit tests covering critical business logic, controllers/services, validation, search, computed attributes, weather snapshots, import/export, and error handling.
+   - Backend suite now covers validation/errors, route calculation, computed attributes, search, import/export, cover images, and weather snapshots with 41 passing tests.
 24. [ ] Add frontend tests for high-risk UI flows if time allows.
 25. [ ] Check SQL injection resistance by relying on JPA/repository parameter binding instead of string-built SQL.
 26. [ ] Verify layer rules: each layer only calls its own layer or the immediate layer below.
@@ -229,8 +237,9 @@ Implementation tasks:
    - Database/class diagram draft exists, but full protocol documentation is not complete yet.
 28. [ ] Complete protocol sections for library decisions, lessons learned, design pattern, unit test decisions, unique feature, tracked time, and Git link.
 29. [ ] Run backend unit tests and fix failures.
+   - Backend tests passed for Task 21 on 2026-06-21 with 41 tests; final full-stack verification still belongs to the final packaging pass.
 30. [ ] Run frontend build/tests and fix failures.
-   - Frontend build and tests passed for Task 18 on 2026-06-21; final full-stack verification still belongs to the final packaging pass.
+   - Frontend build and tests passed for Task 21 on 2026-06-21 with 20 tests; `npm run build` still reports the existing initial bundle budget warning.
 31. [ ] Run a clean end-to-end manual test from empty database: register, login, create tour, fetch route/map, add logs, fetch weather snapshot, search, filter, import, export, edit, delete.
 32. [ ] Confirm final must-haves one by one against the checklist before packaging.
 33. [ ] Update README with final setup: database, environment variables, external image directory, backend start, frontend start, tests, and known assumptions.

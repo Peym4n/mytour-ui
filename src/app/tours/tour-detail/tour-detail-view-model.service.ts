@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { take } from 'rxjs';
 
 import { TourLogDto } from '../../api/generated/models/tour-log-dto';
+import { TourLogWeatherDto } from '../../api/generated/models/tour-log-weather-dto';
 import { TourLogsService } from '../../api/generated/services/tour-logs.service';
 import { TourDetailDto } from '../../api/generated/models/tour-detail-dto';
 import { ToursService } from '../../api/generated/services/tours.service';
@@ -74,11 +75,26 @@ interface TourLogRow {
   readonly performedAt: string;
   readonly comment: string;
   readonly weather: string;
+  readonly weatherSnapshot: WeatherSnapshotView | null;
   readonly difficulty: string;
   readonly distance: string;
   readonly duration: string;
   readonly rating: string;
   readonly deleteAriaLabel: string;
+  readonly weatherRefreshAriaLabel: string;
+}
+
+interface WeatherSnapshotView {
+  readonly summary: string;
+  readonly provider: string;
+  readonly dataset: string;
+  readonly observedAt: string;
+  readonly fetchedAt: string;
+  readonly lookupCoordinate: string;
+  readonly temperature: string;
+  readonly humidity: string;
+  readonly precipitation: string;
+  readonly wind: string;
 }
 
 @Injectable({
@@ -95,6 +111,7 @@ export class TourDetailViewModel {
   private readonly pendingDeleteTourState = signal(false);
   private readonly deletingTourState = signal(false);
   private readonly deletingLogIdState = signal<number | null>(null);
+  private readonly refreshingWeatherLogIdState = signal<number | null>(null);
   private readonly errorMessageState = signal<string | null>(null);
   private readonly logsErrorMessageState = signal<string | null>(null);
   private readonly noticeMessageState = signal<string | null>(null);
@@ -106,6 +123,7 @@ export class TourDetailViewModel {
   readonly pendingDeleteTour = this.pendingDeleteTourState.asReadonly();
   readonly deletingTour = this.deletingTourState.asReadonly();
   readonly deletingLogId = this.deletingLogIdState.asReadonly();
+  readonly refreshingWeatherLogId = this.refreshingWeatherLogIdState.asReadonly();
   readonly errorMessage = this.errorMessageState.asReadonly();
   readonly logsErrorMessage = this.logsErrorMessageState.asReadonly();
   readonly noticeMessage = this.noticeMessageState.asReadonly();
@@ -161,6 +179,7 @@ export class TourDetailViewModel {
     this.pendingDeleteTourState.set(false);
     this.deletingTourState.set(false);
     this.deletingLogIdState.set(null);
+    this.refreshingWeatherLogIdState.set(null);
     this.noticeMessageState.set(null);
     this.errorMessageState.set('The selected tour id is invalid.');
   }
@@ -226,6 +245,46 @@ export class TourDetailViewModel {
 
         this.deletingLogIdState.set(null);
         this.logsErrorMessageState.set('Tour log could not be deleted.');
+      }
+    });
+  }
+
+  refreshWeather(tourId: number | undefined, logId: number | undefined): void {
+    this.logsErrorMessageState.set(null);
+    this.noticeMessageState.set(null);
+
+    if (!this.isPositiveInteger(tourId) || !this.isPositiveInteger(logId)) {
+      this.logsErrorMessageState.set('The selected tour log id is invalid.');
+      return;
+    }
+
+    this.refreshingWeatherLogIdState.set(logId);
+
+    this.tourLogsApi.refreshWeather({ tourId, logId }).pipe(take(1)).subscribe({
+      next: (response) => {
+        void this.resolveWeather(response).then((weather) => {
+          if (weather === null) {
+            this.refreshingWeatherLogIdState.set(null);
+            this.logsErrorMessageState.set('Weather snapshot could not be refreshed.');
+            return;
+          }
+
+          this.replaceLogWeather(logId, weather);
+          this.refreshingWeatherLogIdState.set(null);
+          this.noticeMessageState.set('Weather snapshot refreshed.');
+        }).catch(() => {
+          this.refreshingWeatherLogIdState.set(null);
+          this.logsErrorMessageState.set('Weather snapshot could not be refreshed.');
+        });
+      },
+      error: (error: unknown) => {
+        this.refreshingWeatherLogIdState.set(null);
+        if (this.shouldUseIntermediateTour(error)) {
+          this.logsErrorMessageState.set('Weather refresh requires the tour backend.');
+          return;
+        }
+
+        this.logsErrorMessageState.set('Weather snapshot could not be refreshed.');
       }
     });
   }
@@ -314,6 +373,20 @@ export class TourDetailViewModel {
     return this.extractLogs(response);
   }
 
+  private async resolveWeather(response: unknown): Promise<TourLogWeatherDto | null> {
+    if (response instanceof Blob) {
+      const responseText = await response.text();
+      if (responseText.trim().length === 0) {
+        return null;
+      }
+
+      const parsedResponse: unknown = JSON.parse(responseText);
+      return this.extractWeather(parsedResponse);
+    }
+
+    return this.extractWeather(response);
+  }
+
   private extractTour(response: unknown): TourDetailDto | null {
     if (!this.isRecord(response)) {
       return null;
@@ -324,6 +397,10 @@ export class TourDetailViewModel {
 
   private extractLogs(response: unknown): TourLogDto[] | null {
     return Array.isArray(response) ? response.filter(this.isTourLog) : null;
+  }
+
+  private extractWeather(response: unknown): TourLogWeatherDto | null {
+    return this.isRecord(response) ? response : null;
   }
 
   private isTourLog(value: unknown): value is TourLogDto {
@@ -340,6 +417,10 @@ export class TourDetailViewModel {
 
   private removeLog(logId: number): void {
     this.logsState.update((logs) => logs.filter((log) => log.id !== logId));
+  }
+
+  private replaceLogWeather(logId: number, weather: TourLogWeatherDto): void {
+    this.logsState.update((logs) => logs.map((log) => log.id === logId ? { ...log, weather } : log));
   }
 
   private isPositiveInteger(value: unknown): value is number {
@@ -408,11 +489,36 @@ export class TourDetailViewModel {
       performedAt,
       comment: log.comment || 'No comment stored.',
       weather: formatWeather(log),
+      weatherSnapshot: this.toWeatherSnapshotView(log.weather),
       difficulty: formatDifficulty(log.difficulty),
       distance: formatDistance(log.totalDistanceM),
       duration: formatDuration(log.totalTimeS),
       rating: formatRating(log.rating),
-      deleteAriaLabel: `Delete log from ${performedAt}`
+      deleteAriaLabel: `Delete log from ${performedAt}`,
+      weatherRefreshAriaLabel: `Refresh weather snapshot for log from ${performedAt}`
     };
+  }
+
+  private toWeatherSnapshotView(weather: TourLogWeatherDto | undefined): WeatherSnapshotView | null {
+    if (!weather) {
+      return null;
+    }
+
+    return {
+      summary: formatWeather({ weather }),
+      provider: weather.provider || 'n/a',
+      dataset: weather.providerDataset || 'n/a',
+      observedAt: formatDateTime(weather.weatherObservedAt),
+      fetchedAt: formatDateTime(weather.fetchedAt),
+      lookupCoordinate: formatCoordinate(weather.lookupCoordinate?.latitude, weather.lookupCoordinate?.longitude),
+      temperature: this.formatMeasurement(weather.temperatureC, 'deg C', 1),
+      humidity: this.formatMeasurement(weather.relativeHumidityPercent, '%', 0),
+      precipitation: this.formatMeasurement(weather.precipitationMm, 'mm', 1),
+      wind: this.formatMeasurement(weather.windSpeedKmh, 'km/h', 1)
+    };
+  }
+
+  private formatMeasurement(value: number | undefined, unit: string, fractionDigits: number): string {
+    return typeof value === 'number' ? `${value.toFixed(fractionDigits)} ${unit}` : 'n/a';
   }
 }
