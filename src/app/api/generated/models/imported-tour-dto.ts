@@ -7,7 +7,9 @@ import { ImportedTourLogDto } from '../models/imported-tour-log-dto';
 import { TourRouteDto } from '../models/tour-route-dto';
 export interface ImportedTourDto {
   coverImage?: CoverImageDto;
+  estimatedDurationS: number;
   logs: Array<ImportedTourLogDto>;
+  plannedDistanceM: number;
   route: TourRouteDto;
   tour: CreateTourRequest;
 }

@@ -3,6 +3,7 @@
 
 import { CoordinateDto } from '../models/coordinate-dto';
 export interface ImportedWeatherSnapshotDto {
+  fetchedAt: string;
   lookupCoordinate: CoordinateDto;
   precipitationMm?: number;
   provider: string;

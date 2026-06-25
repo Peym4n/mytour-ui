@@ -11,6 +11,10 @@ export interface TourRouteDto {
   endCoordinate?: CoordinateDto;
   midpointCoordinate?: CoordinateDto;
   routeFetchedAt?: string;
+
+  /**
+   * OpenRouteService GeoJSON stored as PostgreSQL jsonb.
+   */
   routeGeometry?: JsonNode;
   routeProfile?: string;
   routeSource?: string;
