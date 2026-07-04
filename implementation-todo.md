@@ -227,7 +227,9 @@ Implementation tasks:
    - Tour log create/update/refresh now replaces the generated weather snapshot through the weather snapshot service.
    - Tour detail log rows now display the full weather snapshot and can call `POST /api/tours/{tourId}/logs/{logId}/weather/refresh`.
    - The PostgreSQL schema/entity/repository for `tour_log_weather` already exists; full persistent TourLog CRUD remains in the later DAL tasks.
-22. [ ] Add logging for exceptions, errors, and useful technical events with the chosen Java logging setup.
+22. [x] Add logging for exceptions, errors, and useful technical events with the chosen Java logging setup.
+   - Added SLF4J logging for upstream route/weather calls, local route/weather fallbacks, import/export counts, intermediate CRUD actions, cover-image storage/deletion, validation handling, upstream exceptions, and unexpected API errors.
+   - Added an output-capture test for the route fallback logging path.
 23. [x] Add at least 20 useful unit tests covering critical business logic, controllers/services, validation, search, computed attributes, weather snapshots, import/export, and error handling.
    - Backend suite now covers validation/errors, route calculation, computed attributes, search, import/export, cover images, and weather snapshots with 41 passing tests.
 24. [ ] Add frontend tests for high-risk UI flows if time allows.
