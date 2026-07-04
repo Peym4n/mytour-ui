@@ -232,7 +232,9 @@ Implementation tasks:
    - Added an output-capture test for the route fallback logging path.
 23. [x] Add at least 20 useful unit tests covering critical business logic, controllers/services, validation, search, computed attributes, weather snapshots, import/export, and error handling.
    - Backend suite now covers validation/errors, route calculation, computed attributes, search, import/export, cover images, and weather snapshots with 41 passing tests.
-24. [ ] Add frontend tests for high-risk UI flows if time allows.
+24. [x] Add frontend tests for high-risk UI flows if time allows.
+   - Added `TourLogFormViewModel` tests covering invalid-form handling, create request mapping, edit/update request mapping with version, API validation errors, and navigation after successful saves.
+   - Frontend test suite now passes with 24 tests.
 25. [ ] Check SQL injection resistance by relying on JPA/repository parameter binding instead of string-built SQL.
 26. [ ] Verify layer rules: each layer only calls its own layer or the immediate layer below.
 27. [ ] Complete protocol architecture documentation: class diagram, use-case diagram, sequence diagram for full-text search, and layer description.
@@ -241,7 +243,7 @@ Implementation tasks:
 29. [ ] Run backend unit tests and fix failures.
    - Backend tests passed for Task 21 on 2026-06-21 with 41 tests; final full-stack verification still belongs to the final packaging pass.
 30. [ ] Run frontend build/tests and fix failures.
-   - Frontend build and tests passed for Task 21 on 2026-06-21 with 20 tests; `npm run build` still reports the existing initial bundle budget warning.
+   - Frontend build and tests passed for Task 24 on 2026-07-04 with 24 tests; `npm run build` still reports the existing initial bundle budget warning.
 31. [ ] Run a clean end-to-end manual test from empty database: register, login, create tour, fetch route/map, add logs, fetch weather snapshot, search, filter, import, export, edit, delete.
 32. [ ] Confirm final must-haves one by one against the checklist before packaging.
 33. [ ] Update README with final setup: database, environment variables, external image directory, backend start, frontend start, tests, and known assumptions.
