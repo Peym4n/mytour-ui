@@ -262,8 +262,9 @@ Implementation tasks:
 27. [ ] Complete protocol architecture documentation: class diagram, use-case diagram, sequence diagram for full-text search, and layer description.
    - Database/class diagram draft exists, but full protocol documentation is not complete yet.
 28. [ ] Complete protocol sections for library decisions, lessons learned, design pattern, unit test decisions, unique feature, tracked time, and Git link.
-29. [ ] Run backend unit tests and fix failures.
-   - Backend tests passed for the autocomplete/search/weather/upload corrections on 2026-07-04 with 55 tests; final full-stack verification still belongs to the final packaging pass.
+29. [x] Run backend unit tests and fix failures.
+   - Backend tests passed for Task 29 on 2026-07-04 with 55 tests, 0 failures, and 0 errors.
+   - No backend fixes were needed during this pass; final full-stack verification still belongs to the final packaging pass.
 30. [ ] Run frontend build/tests and fix failures.
    - Frontend build and tests passed for the autocomplete/search/weather/upload corrections on 2026-07-04 with 30 tests.
    - `npm run build` still reports budget warnings: initial bundle is 528.17 kB instead of 500.00 kB, and `tours-list.scss` is 4.12 kB instead of 4.00 kB.
