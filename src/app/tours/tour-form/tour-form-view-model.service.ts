@@ -1,10 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { DestroyRef, computed, inject, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { take } from 'rxjs';
+import { catchError, debounceTime, from, map, of, Subject, switchMap, take } from 'rxjs';
 
 import { CreateTourRequest } from '../../api/generated/models/create-tour-request';
+import { LocationSuggestionDto } from '../../api/generated/models/location-suggestion-dto';
+import { TimezoneSuggestionDto } from '../../api/generated/models/timezone-suggestion-dto';
 import { TourDetailDto } from '../../api/generated/models/tour-detail-dto';
 import { ToursService } from '../../api/generated/services/tours.service';
 import { UpdateTourRequest } from '../../api/generated/models/update-tour-request';
@@ -12,6 +15,7 @@ import { INTERMEDIATE_TOUR_DETAILS } from '../shared/intermediate-tours';
 
 type TourTransportType = CreateTourRequest['transportType'];
 type TourFormMode = 'create' | 'edit';
+type LocationField = 'start' | 'end';
 type TourFormControlName =
   | 'name'
   | 'description'
@@ -28,6 +32,7 @@ type TourFormControlName =
   providedIn: 'root'
 })
 export class TourFormViewModel {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly toursApi = inject(ToursService);
   private readonly router = inject(Router);
@@ -38,6 +43,12 @@ export class TourFormViewModel {
   private readonly savingState = signal(false);
   private readonly errorMessageState = signal<string | null>(null);
   private readonly noticeMessageState = signal<string | null>(null);
+  private readonly startLocationSuggestionsState = signal<LocationSuggestionDto[]>([]);
+  private readonly endLocationSuggestionsState = signal<LocationSuggestionDto[]>([]);
+  private readonly timezoneSuggestionsState = signal<TimezoneSuggestionDto[]>([]);
+  private readonly selectedCoverFileState = signal<File | null>(null);
+  private readonly locationSuggestionRequests = new Subject<{ field: LocationField; query: string }>();
+  private readonly timezoneSuggestionRequests = new Subject<string>();
 
   readonly mode = this.modeState.asReadonly();
   readonly tourId = this.tourIdState.asReadonly();
@@ -45,8 +56,13 @@ export class TourFormViewModel {
   readonly saving = this.savingState.asReadonly();
   readonly errorMessage = this.errorMessageState.asReadonly();
   readonly noticeMessage = this.noticeMessageState.asReadonly();
+  readonly startLocationSuggestions = this.startLocationSuggestionsState.asReadonly();
+  readonly endLocationSuggestions = this.endLocationSuggestionsState.asReadonly();
+  readonly timezoneSuggestions = this.timezoneSuggestionsState.asReadonly();
+  readonly selectedCoverFile = this.selectedCoverFileState.asReadonly();
   readonly pageTitle = computed(() => this.modeState() === 'create' ? 'New tour' : 'Edit tour');
   readonly submitLabel = computed(() => this.modeState() === 'create' ? 'Create tour' : 'Save changes');
+  readonly coverFileLabel = computed(() => this.selectedCoverFileState()?.name ?? 'No image selected');
 
   readonly transportOptions: ReadonlyArray<{ label: string; value: TourTransportType }> = [
     { label: 'Bike', value: 'BIKE' },
@@ -68,6 +84,28 @@ export class TourFormViewModel {
     endLongitude: [16.4, [Validators.required, Validators.min(-180), Validators.max(180)]]
   });
 
+  constructor() {
+    this.locationSuggestionRequests.pipe(
+      debounceTime(200),
+      switchMap((request) => this.fetchLocationSuggestions(request.field, request.query)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(({ field, suggestions }) => {
+      if (field === 'start') {
+        this.startLocationSuggestionsState.set(suggestions);
+      } else {
+        this.endLocationSuggestionsState.set(suggestions);
+      }
+    });
+
+    this.timezoneSuggestionRequests.pipe(
+      debounceTime(160),
+      switchMap((query) => this.fetchTimezoneSuggestions(query)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((suggestions) => {
+      this.timezoneSuggestionsState.set(suggestions);
+    });
+  }
+
   initializeCreate(): void {
     this.modeState.set('create');
     this.tourIdState.set(null);
@@ -76,6 +114,8 @@ export class TourFormViewModel {
     this.savingState.set(false);
     this.errorMessageState.set(null);
     this.noticeMessageState.set(null);
+    this.clearSuggestionState();
+    this.selectedCoverFileState.set(null);
     this.form.reset({
       name: '',
       description: '',
@@ -97,6 +137,8 @@ export class TourFormViewModel {
     this.savingState.set(false);
     this.errorMessageState.set(null);
     this.noticeMessageState.set(null);
+    this.clearSuggestionState();
+    this.selectedCoverFileState.set(null);
     this.form.reset();
 
     this.toursApi.getTour({ tourId }).pipe(take(1)).subscribe({
@@ -186,11 +228,62 @@ export class TourFormViewModel {
     return 'The value is invalid.';
   }
 
+  requestLocationSuggestions(field: LocationField): void {
+    const control = field === 'start' ? this.form.controls.startLocation : this.form.controls.endLocation;
+    this.locationSuggestionRequests.next({ field, query: control.value });
+  }
+
+  selectLocationSuggestion(field: LocationField, suggestion: LocationSuggestionDto): void {
+    const coordinate = suggestion.coordinate;
+    if (!suggestion.label || !coordinate) {
+      return;
+    }
+
+    if (field === 'start') {
+      this.form.patchValue({
+        startLocation: suggestion.label,
+        startLatitude: Number(coordinate.latitude),
+        startLongitude: Number(coordinate.longitude),
+        timezoneId: suggestion.timezoneId ?? this.form.controls.timezoneId.value
+      });
+      this.startLocationSuggestionsState.set([]);
+      return;
+    }
+
+    this.form.patchValue({
+      endLocation: suggestion.label,
+      endLatitude: Number(coordinate.latitude),
+      endLongitude: Number(coordinate.longitude)
+    });
+    this.endLocationSuggestionsState.set([]);
+  }
+
+  requestTimezoneSuggestions(): void {
+    this.timezoneSuggestionRequests.next(this.form.controls.timezoneId.value);
+  }
+
+  selectTimezoneSuggestion(suggestion: TimezoneSuggestionDto): void {
+    if (!suggestion.timezoneId) {
+      return;
+    }
+
+    this.form.controls.timezoneId.setValue(suggestion.timezoneId);
+    this.timezoneSuggestionsState.set([]);
+  }
+
+  selectCoverFile(file: File | null): void {
+    this.selectedCoverFileState.set(file);
+  }
+
+  clearSelectedCoverFile(): void {
+    this.selectedCoverFileState.set(null);
+  }
+
   private createTour(): void {
     this.toursApi.createTour({ body: this.buildCreateRequest() }).pipe(take(1)).subscribe({
       next: (response) => {
         void this.resolveTour(response).then((tour) => {
-          void this.router.navigate(['/tours', tour?.id ?? '']);
+          this.uploadCoverImageIfNeeded(tour?.id ?? null);
         }).catch(() => {
           void this.router.navigate(['/tours']);
         });
@@ -213,7 +306,7 @@ export class TourFormViewModel {
     this.toursApi.updateTour({ tourId, body: this.buildUpdateRequest() }).pipe(take(1)).subscribe({
       next: (response) => {
         void this.resolveTour(response).then((tour) => {
-          void this.router.navigate(['/tours', tour?.id ?? tourId]);
+          this.uploadCoverImageIfNeeded(tour?.id ?? tourId);
         }).catch(() => {
           void this.router.navigate(['/tours', tourId]);
         });
@@ -269,6 +362,60 @@ export class TourFormViewModel {
     });
   }
 
+  private uploadCoverImageIfNeeded(tourId: number | null): void {
+    if (typeof tourId !== 'number') {
+      void this.router.navigate(['/tours']);
+      return;
+    }
+
+    const selectedCoverFile = this.selectedCoverFileState();
+    if (selectedCoverFile === null) {
+      void this.router.navigate(['/tours', tourId]);
+      return;
+    }
+
+    this.toursApi.uploadCoverImage({
+      tourId,
+      body: {
+        file: selectedCoverFile
+      }
+    }).pipe(take(1)).subscribe({
+      next: () => {
+        this.selectedCoverFileState.set(null);
+        void this.router.navigate(['/tours', tourId]);
+      },
+      error: () => {
+        this.savingState.set(false);
+        this.errorMessageState.set('The tour was saved, but the cover image could not be uploaded.');
+      }
+    });
+  }
+
+  private fetchLocationSuggestions(field: LocationField, query: string) {
+    const trimmedQuery = query.trim();
+    if (trimmedQuery.length < 2) {
+      return of({ field, suggestions: [] });
+    }
+
+    return this.toursApi.suggestLocations({ q: trimmedQuery, limit: 6 }).pipe(
+      switchMap((response) => from(this.resolveArray<LocationSuggestionDto>(response)).pipe(
+        map((suggestions) => ({ field, suggestions: suggestions ?? [] })),
+        catchError(() => of({ field, suggestions: [] }))
+      )),
+      catchError(() => of({ field, suggestions: [] }))
+    );
+  }
+
+  private fetchTimezoneSuggestions(query: string) {
+    return this.toursApi.suggestTimezones({ q: query.trim(), limit: 8 }).pipe(
+      switchMap((response) => from(this.resolveArray<TimezoneSuggestionDto>(response)).pipe(
+        map((suggestions) => suggestions ?? []),
+        catchError(() => of<TimezoneSuggestionDto[]>([]))
+      )),
+      catchError(() => of<TimezoneSuggestionDto[]>([]))
+    );
+  }
+
   private useIntermediateTour(tourId: number): void {
     const fallbackTour = INTERMEDIATE_TOUR_DETAILS.find((tour) => tour.id === tourId) ?? null;
     this.loadingState.set(false);
@@ -301,6 +448,20 @@ export class TourFormViewModel {
     return this.extractTour(response);
   }
 
+  private async resolveArray<T>(response: unknown): Promise<T[] | null> {
+    if (response instanceof Blob) {
+      const responseText = await response.text();
+      if (responseText.trim().length === 0) {
+        return [];
+      }
+
+      const parsedResponse: unknown = JSON.parse(responseText);
+      return Array.isArray(parsedResponse) ? parsedResponse as T[] : null;
+    }
+
+    return Array.isArray(response) ? response as T[] : null;
+  }
+
   private extractTour(response: unknown): TourDetailDto | null {
     if (!this.isRecord(response)) {
       return null;
@@ -311,5 +472,11 @@ export class TourFormViewModel {
 
   private isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null;
+  }
+
+  private clearSuggestionState(): void {
+    this.startLocationSuggestionsState.set([]);
+    this.endLocationSuggestionsState.set([]);
+    this.timezoneSuggestionsState.set([]);
   }
 }

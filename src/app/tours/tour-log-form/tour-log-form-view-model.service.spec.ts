@@ -7,6 +7,7 @@ import { CreateTourLogRequest } from '../../api/generated/models/create-tour-log
 import { TourLogDto } from '../../api/generated/models/tour-log-dto';
 import { UpdateTourLogRequest } from '../../api/generated/models/update-tour-log-request';
 import { TourLogsService } from '../../api/generated/services/tour-logs.service';
+import { ToursService } from '../../api/generated/services/tours.service';
 import { TourLogFormViewModel } from './tour-log-form-view-model.service';
 
 describe('TourLogFormViewModel', () => {
@@ -14,6 +15,9 @@ describe('TourLogFormViewModel', () => {
     getLog: ReturnType<typeof vi.fn>;
     createLog: ReturnType<typeof vi.fn>;
     updateLog: ReturnType<typeof vi.fn>;
+  };
+  let toursApi: {
+    getTour: ReturnType<typeof vi.fn>;
   };
   let router: {
     navigate: ReturnType<typeof vi.fn>;
@@ -25,6 +29,9 @@ describe('TourLogFormViewModel', () => {
       createLog: vi.fn(),
       updateLog: vi.fn()
     };
+    toursApi = {
+      getTour: vi.fn().mockReturnValue(of({ id: 7, timezoneId: 'Europe/Vienna' }))
+    };
     router = {
       navigate: vi.fn()
     };
@@ -33,6 +40,7 @@ describe('TourLogFormViewModel', () => {
       providers: [
         TourLogFormViewModel,
         { provide: TourLogsService, useValue: tourLogsApi },
+        { provide: ToursService, useValue: toursApi },
         { provide: Router, useValue: router }
       ]
     });
@@ -58,6 +66,7 @@ describe('TourLogFormViewModel', () => {
     tourLogsApi.createLog.mockReturnValue(of({ id: 401 }));
     const viewModel = TestBed.inject(TourLogFormViewModel);
     viewModel.initializeCreate(7);
+    await flushPromises();
     viewModel.form.setValue({
       performedAt: '2026-05-10T17:45',
       comment: '  Calm evening ride  ',
@@ -71,7 +80,7 @@ describe('TourLogFormViewModel', () => {
     await flushPromises();
 
     const expectedBody: CreateTourLogRequest = {
-      performedAt: new Date('2026-05-10T17:45').toISOString(),
+      performedAt: '2026-05-10T15:45:00.000Z',
       comment: 'Calm evening ride',
       difficulty: 2,
       totalDistanceM: 18400,
@@ -83,6 +92,7 @@ describe('TourLogFormViewModel', () => {
   });
 
   it('loads an existing log and submits updates with the current version', async () => {
+    toursApi.getTour.mockReturnValue(of({ id: 1, timezoneId: 'Europe/Vienna' }));
     tourLogsApi.getLog.mockReturnValue(of(log()));
     tourLogsApi.updateLog.mockReturnValue(of({ id: 101 }));
     const viewModel = TestBed.inject(TourLogFormViewModel);
@@ -93,6 +103,7 @@ describe('TourLogFormViewModel', () => {
     expect(tourLogsApi.getLog).toHaveBeenCalledWith({ tourId: 1, logId: 101 });
     expect(viewModel.loading()).toBe(false);
     expect(viewModel.pageTitle()).toBe('Edit tour log');
+    expect(viewModel.form.controls.performedAt.value).toBe('2026-05-10T17:45');
     expect(viewModel.form.controls.comment.value).toBe('Backend log');
 
     viewModel.form.patchValue({
@@ -103,7 +114,7 @@ describe('TourLogFormViewModel', () => {
     await flushPromises();
 
     const expectedBody: UpdateTourLogRequest = {
-      performedAt: new Date('2026-05-10T17:45').toISOString(),
+      performedAt: '2026-05-10T15:45:00.000Z',
       comment: 'Updated backend log',
       difficulty: 2,
       totalDistanceM: 18400,
@@ -119,6 +130,7 @@ describe('TourLogFormViewModel', () => {
     tourLogsApi.createLog.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 400 })));
     const viewModel = TestBed.inject(TourLogFormViewModel);
     viewModel.initializeCreate(7);
+    await flushPromises();
     viewModel.form.setValue({
       performedAt: '2026-05-10T17:45',
       comment: '',
@@ -141,7 +153,7 @@ function log(): TourLogDto {
   return {
     id: 101,
     tourId: 1,
-    performedAt: new Date('2026-05-10T17:45').toISOString(),
+    performedAt: '2026-05-10T15:45:00.000Z',
     comment: 'Backend log',
     difficulty: 2,
     totalDistanceM: 18400,

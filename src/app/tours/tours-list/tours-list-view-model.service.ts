@@ -5,6 +5,7 @@ import { catchError, debounce, from, map, of, Subject, switchMap, take, tap, tim
 import { SearchTours$Params } from '../../api/generated/fn/tours/search-tours';
 import { ToursService } from '../../api/generated/services/tours.service';
 import { TourSummaryDto } from '../../api/generated/models/tour-summary-dto';
+import { TourSuggestionDto } from '../../api/generated/models/tour-suggestion-dto';
 import { INTERMEDIATE_TOUR_DETAILS, toTourSummary } from '../shared/intermediate-tours';
 import {
   formatDistance,
@@ -23,9 +24,13 @@ type TourLoadResult =
   | { readonly kind: 'api'; readonly tours: TourSummaryDto[] }
   | { readonly kind: 'unreadable-api' }
   | { readonly kind: 'unavailable-api' };
+type TourSuggestionResult =
+  | { readonly kind: 'api'; readonly suggestions: TourSuggestionDto[] }
+  | { readonly kind: 'unavailable-api' };
 
 const INTERMEDIATE_TOURS = INTERMEDIATE_TOUR_DETAILS.map(toTourSummary);
 const SEARCH_DEBOUNCE_MS = 250;
+const SUGGESTION_DEBOUNCE_MS = 180;
 
 export interface TourListRow {
   readonly tour: TourSummaryDto;
@@ -60,17 +65,20 @@ export class ToursListViewModel {
   private readonly selectedTourIdState = signal<number | null>(null);
   private readonly pendingDeleteIdState = signal<number | null>(null);
   private readonly searchQueryState = signal('');
+  private readonly tourSuggestionsState = signal<TourSuggestionDto[]>([]);
   private readonly transportFilterState = signal<TourTransportFilter>('');
   private readonly loadingState = signal(false);
   private readonly errorMessageState = signal<string | null>(null);
   private readonly noticeMessageState = signal<string | null>(null);
   private readonly dataSourceState = signal<TourDataSource>('api');
   private readonly tourLoadRequests = new Subject<number>();
+  private readonly tourSuggestionRequests = new Subject<string>();
 
   readonly tours = this.toursState.asReadonly();
   readonly selectedTourId = this.selectedTourIdState.asReadonly();
   readonly pendingDeleteId = this.pendingDeleteIdState.asReadonly();
   readonly searchQuery = this.searchQueryState.asReadonly();
+  readonly tourSuggestions = this.tourSuggestionsState.asReadonly();
   readonly transportFilter = this.transportFilterState.asReadonly();
   readonly loading = this.loadingState.asReadonly();
   readonly errorMessage = this.errorMessageState.asReadonly();
@@ -108,6 +116,7 @@ export class ToursListViewModel {
   readonly hasFilters = computed(
     () => this.searchQueryState().trim().length > 0 || this.transportFilterState() !== ''
   );
+  readonly hasTourSuggestions = computed(() => this.tourSuggestionsState().length > 0);
 
   readonly visibleTourCount = computed(() => this.tourRows().length);
 
@@ -120,6 +129,14 @@ export class ToursListViewModel {
     ).subscribe((result) => {
       this.applyLoadResult(result);
     });
+
+    this.tourSuggestionRequests.pipe(
+      debounce(() => timer(SUGGESTION_DEBOUNCE_MS)),
+      switchMap((query) => this.fetchTourSuggestions(query)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((result) => {
+      this.tourSuggestionsState.set(result.kind === 'api' ? result.suggestions : []);
+    });
   }
 
   loadTours(): void {
@@ -128,6 +145,7 @@ export class ToursListViewModel {
 
   setSearchQuery(query: string): void {
     this.searchQueryState.set(query);
+    this.tourSuggestionRequests.next(query);
     this.requestTourLoad(SEARCH_DEBOUNCE_MS);
   }
 
@@ -142,7 +160,17 @@ export class ToursListViewModel {
 
   clearFilters(): void {
     this.searchQueryState.set('');
+    this.tourSuggestionsState.set([]);
     this.transportFilterState.set('');
+    this.loadTours();
+  }
+
+  selectSuggestion(suggestion: TourSuggestionDto): void {
+    this.searchQueryState.set(suggestion.label ?? '');
+    this.tourSuggestionsState.set([]);
+    if (typeof suggestion.tourId === 'number') {
+      this.selectedTourIdState.set(suggestion.tourId);
+    }
     this.loadTours();
   }
 
@@ -237,6 +265,52 @@ export class ToursListViewModel {
     );
   }
 
+  private fetchTourSuggestions(query: string) {
+    const trimmedQuery = query.trim();
+    if (trimmedQuery.length < 2) {
+      return of<TourSuggestionResult>({ kind: 'api', suggestions: [] });
+    }
+
+    if (this.dataSourceState() === 'intermediate') {
+      return of<TourSuggestionResult>({
+        kind: 'api',
+        suggestions: this.localTourSuggestions(trimmedQuery)
+      });
+    }
+
+    return this.toursApi.suggestTours({ q: trimmedQuery, limit: 6 }).pipe(
+      switchMap((response) => from(this.resolveSuggestions<TourSuggestionDto>(response)).pipe(
+        map((suggestions): TourSuggestionResult => ({
+          kind: 'api',
+          suggestions: suggestions ?? []
+        })),
+        catchError(() => of<TourSuggestionResult>({ kind: 'unavailable-api' }))
+      )),
+      catchError(() => of<TourSuggestionResult>({ kind: 'unavailable-api' }))
+    );
+  }
+
+  private localTourSuggestions(query: string): TourSuggestionDto[] {
+    const normalizedQuery = query.toLowerCase();
+    return this.filterLocalTours()
+      .filter((tour) => [
+        tour.name,
+        tour.startLocation,
+        tour.endLocation,
+        tour.computedAttributes?.popularityLabel,
+        tour.computedAttributes?.childFriendlinessLabel
+      ]
+        .filter((value): value is string => typeof value === 'string')
+        .some((value) => value.toLowerCase().includes(normalizedQuery)))
+      .slice(0, 6)
+      .map((tour) => ({
+        tourId: tour.id,
+        label: tour.name,
+        route: routeLabel(tour),
+        matchedText: routeLabel(tour)
+      }));
+  }
+
   private applyLoadResult(result: TourLoadResult): void {
     if (result.kind === 'api') {
       this.dataSourceState.set('api');
@@ -315,6 +389,20 @@ export class ToursListViewModel {
     }
 
     return this.extractTours(response);
+  }
+
+  private async resolveSuggestions<T>(response: unknown): Promise<T[] | null> {
+    if (response instanceof Blob) {
+      const responseText = await response.text();
+      if (responseText.trim().length === 0) {
+        return [];
+      }
+
+      const parsedResponse: unknown = JSON.parse(responseText);
+      return Array.isArray(parsedResponse) ? parsedResponse as T[] : null;
+    }
+
+    return Array.isArray(response) ? response as T[] : null;
   }
 
   private extractTours(response: unknown): TourSummaryDto[] | null {

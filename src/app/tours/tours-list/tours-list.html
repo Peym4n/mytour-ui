@@ -38,6 +38,21 @@
           (input)="onSearchInput($event)"
           placeholder="Name, place, attribute"
         />
+        @if (tourVm.hasTourSuggestions()) {
+          <div class="suggestion-list" role="listbox" aria-label="Tour search suggestions">
+            @for (suggestion of tourVm.tourSuggestions(); track suggestion.tourId ?? suggestion.label) {
+              <button
+                type="button"
+                role="option"
+                class="suggestion-option"
+                (click)="tourVm.selectSuggestion(suggestion)"
+              >
+                <span>{{ suggestion.label }}</span>
+                <small>{{ suggestion.route }}</small>
+              </button>
+            }
+          </div>
+        }
       </label>
 
       <label class="filter-field filter-field--select">

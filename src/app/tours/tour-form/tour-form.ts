@@ -38,4 +38,9 @@ export class TourFormComponent implements OnInit {
       this.tourFormVm.initializeEdit(tourId);
     });
   }
+
+  protected onCoverFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.tourFormVm.selectCoverFile(input.files?.item(0) ?? null);
+  }
 }

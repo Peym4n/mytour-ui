@@ -6,8 +6,11 @@ import { take } from 'rxjs';
 
 import { CreateTourLogRequest } from '../../api/generated/models/create-tour-log-request';
 import { TourLogDto } from '../../api/generated/models/tour-log-dto';
+import { TourDetailDto } from '../../api/generated/models/tour-detail-dto';
 import { UpdateTourLogRequest } from '../../api/generated/models/update-tour-log-request';
 import { TourLogsService } from '../../api/generated/services/tour-logs.service';
+import { ToursService } from '../../api/generated/services/tours.service';
+import { INTERMEDIATE_TOUR_DETAILS } from '../shared/intermediate-tours';
 import { INTERMEDIATE_TOUR_LOGS } from '../shared/intermediate-tour-logs';
 
 type TourLogFormMode = 'create' | 'edit';
@@ -25,6 +28,7 @@ type TourLogFormControlName =
 export class TourLogFormViewModel {
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly tourLogsApi = inject(TourLogsService);
+  private readonly toursApi = inject(ToursService);
   private readonly router = inject(Router);
   private readonly modeState = signal<TourLogFormMode>('create');
   private readonly tourIdState = signal<number | null>(null);
@@ -34,6 +38,8 @@ export class TourLogFormViewModel {
   private readonly savingState = signal(false);
   private readonly errorMessageState = signal<string | null>(null);
   private readonly noticeMessageState = signal<string | null>(null);
+  private readonly tourTimezoneIdState = signal('Europe/Vienna');
+  private readonly loadedLogState = signal<TourLogDto | null>(null);
 
   readonly mode = this.modeState.asReadonly();
   readonly tourId = this.tourIdState.asReadonly();
@@ -41,8 +47,10 @@ export class TourLogFormViewModel {
   readonly saving = this.savingState.asReadonly();
   readonly errorMessage = this.errorMessageState.asReadonly();
   readonly noticeMessage = this.noticeMessageState.asReadonly();
+  readonly tourTimezoneId = this.tourTimezoneIdState.asReadonly();
   readonly pageTitle = computed(() => this.modeState() === 'create' ? 'New tour log' : 'Edit tour log');
   readonly submitLabel = computed(() => this.modeState() === 'create' ? 'Create log' : 'Save changes');
+  readonly timezoneHint = computed(() => `Interpreted in ${this.tourTimezoneIdState()}`);
   readonly backLink = computed(() => {
     const tourId = this.tourIdState();
     return tourId === null ? ['/tours'] : ['/tours', tourId];
@@ -78,6 +86,8 @@ export class TourLogFormViewModel {
     this.tourIdState.set(tourId);
     this.logIdState.set(null);
     this.versionState.set(1);
+    this.loadedLogState.set(null);
+    this.tourTimezoneIdState.set('Europe/Vienna');
     this.loadingState.set(false);
     this.savingState.set(false);
     this.errorMessageState.set(null);
@@ -90,16 +100,20 @@ export class TourLogFormViewModel {
       totalTimeS: 1800,
       rating: 4
     });
+    this.loadTourTimezone(tourId);
   }
 
   initializeEdit(tourId: number, logId: number): void {
     this.modeState.set('edit');
     this.tourIdState.set(tourId);
     this.logIdState.set(logId);
+    this.loadedLogState.set(null);
+    this.tourTimezoneIdState.set('Europe/Vienna');
     this.loadingState.set(true);
     this.savingState.set(false);
     this.errorMessageState.set(null);
     this.noticeMessageState.set(null);
+    this.loadTourTimezone(tourId);
 
     this.tourLogsApi.getLog({ tourId, logId }).pipe(take(1)).subscribe({
       next: (response) => {
@@ -109,6 +123,7 @@ export class TourLogFormViewModel {
             return;
           }
 
+          this.loadedLogState.set(log);
           this.patchForm(log);
           this.loadingState.set(false);
         }).catch(() => {
@@ -268,6 +283,39 @@ export class TourLogFormViewModel {
     });
   }
 
+  private loadTourTimezone(tourId: number): void {
+    this.toursApi.getTour({ tourId }).pipe(take(1)).subscribe({
+      next: (response) => {
+        void this.resolveTour(response).then((tour) => {
+          this.applyTourTimezone(tour?.timezoneId ?? 'Europe/Vienna');
+        }).catch(() => {
+          this.applyFallbackTourTimezone(tourId);
+        });
+      },
+      error: () => {
+        this.applyFallbackTourTimezone(tourId);
+      }
+    });
+  }
+
+  private applyFallbackTourTimezone(tourId: number): void {
+    const fallbackTour = INTERMEDIATE_TOUR_DETAILS.find((tour) => tour.id === tourId);
+    this.applyTourTimezone(fallbackTour?.timezoneId ?? 'Europe/Vienna');
+  }
+
+  private applyTourTimezone(timezoneId: string): void {
+    this.tourTimezoneIdState.set(timezoneId || 'Europe/Vienna');
+    const loadedLog = this.loadedLogState();
+    if (loadedLog) {
+      this.form.controls.performedAt.setValue(this.toLocalInputValue(loadedLog.performedAt));
+      return;
+    }
+
+    if (this.modeState() === 'create' && !this.form.controls.performedAt.dirty) {
+      this.form.controls.performedAt.setValue(this.defaultPerformedAt());
+    }
+  }
+
   private useIntermediateLog(tourId: number, logId: number): void {
     const fallbackLog = (INTERMEDIATE_TOUR_LOGS[tourId] ?? []).find((log) => log.id === logId) ?? null;
     this.loadingState.set(false);
@@ -279,6 +327,7 @@ export class TourLogFormViewModel {
     }
 
     this.patchForm(fallbackLog);
+    this.loadedLogState.set(fallbackLog);
     this.noticeMessageState.set('The tour log backend is not available yet. Editing intermediate log data.');
   }
 
@@ -308,13 +357,26 @@ export class TourLogFormViewModel {
     return this.extractLog(response);
   }
 
+  private async resolveTour(response: unknown): Promise<TourDetailDto | null> {
+    if (response instanceof Blob) {
+      const responseText = await response.text();
+      if (responseText.trim().length === 0) {
+        return null;
+      }
+
+      const parsedResponse: unknown = JSON.parse(responseText);
+      return this.isRecord(parsedResponse) ? parsedResponse : null;
+    }
+
+    return this.isRecord(response) ? response : null;
+  }
+
   private extractLog(response: unknown): TourLogDto | null {
     return this.isRecord(response) ? response : null;
   }
 
   private toIsoDate(value: string): string {
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+    return zonedLocalDateTimeToIso(value, this.tourTimezoneIdState()) ?? new Date().toISOString();
   }
 
   private toLocalInputValue(value: string | undefined): string {
@@ -322,24 +384,100 @@ export class TourLogFormViewModel {
       return this.defaultPerformedAt();
     }
 
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-      return this.defaultPerformedAt();
-    }
-
-    const timezoneOffsetMs = date.getTimezoneOffset() * 60_000;
-    return new Date(date.getTime() - timezoneOffsetMs).toISOString().slice(0, 16);
+    return instantToLocalInputValue(value, this.tourTimezoneIdState()) ?? this.defaultPerformedAt();
   }
 
   private defaultPerformedAt(): string {
-    const now = new Date();
-    const timezoneOffsetMs = now.getTimezoneOffset() * 60_000;
-    return new Date(now.getTime() - timezoneOffsetMs).toISOString().slice(0, 16);
+    return instantToLocalInputValue(new Date().toISOString(), this.tourTimezoneIdState())
+      ?? new Date().toISOString().slice(0, 16);
   }
 
   private isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null;
   }
+}
+
+function zonedLocalDateTimeToIso(value: string, timezoneId: string): string | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
+  if (!match) {
+    return null;
+  }
+
+  const [, year, month, day, hour, minute] = match;
+  const localAsUtcMs = Date.UTC(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute)
+  );
+
+  try {
+    const firstOffset = timezoneOffsetMs(localAsUtcMs, timezoneId);
+    let instantMs = localAsUtcMs - firstOffset;
+    const secondOffset = timezoneOffsetMs(instantMs, timezoneId);
+    if (secondOffset !== firstOffset) {
+      instantMs = localAsUtcMs - secondOffset;
+    }
+
+    return new Date(instantMs).toISOString();
+  } catch {
+    const fallbackDate = new Date(value);
+    return Number.isNaN(fallbackDate.getTime()) ? null : fallbackDate.toISOString();
+  }
+}
+
+function instantToLocalInputValue(value: string, timezoneId: string): string | null {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  try {
+    const parts = zonedParts(date.getTime(), timezoneId);
+    return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+  } catch {
+    const timezoneOffsetMs = date.getTimezoneOffset() * 60_000;
+    return new Date(date.getTime() - timezoneOffsetMs).toISOString().slice(0, 16);
+  }
+}
+
+function timezoneOffsetMs(instantMs: number, timezoneId: string): number {
+  const parts = zonedParts(instantMs, timezoneId);
+  const zonedAsUtcMs = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second)
+  );
+  return zonedAsUtcMs - instantMs;
+}
+
+function zonedParts(instantMs: number, timezoneId: string): Record<'year' | 'month' | 'day' | 'hour' | 'minute' | 'second', string> {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezoneId,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23'
+  });
+  const parts = Object.fromEntries(formatter.formatToParts(new Date(instantMs))
+    .filter((part) => part.type !== 'literal')
+    .map((part) => [part.type, part.value]));
+
+  return {
+    year: parts['year'],
+    month: parts['month'],
+    day: parts['day'],
+    hour: parts['hour'],
+    minute: parts['minute'],
+    second: parts['second']
+  };
 }
 
 function localDateTimeValidator(): ValidatorFn {

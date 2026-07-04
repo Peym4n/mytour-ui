@@ -87,8 +87,25 @@
               type="text"
               formControlName="timezoneId"
               maxlength="64"
+              autocomplete="off"
+              (input)="tourFormVm.requestTimezoneSuggestions()"
+              (focus)="tourFormVm.requestTimezoneSuggestions()"
               [attr.aria-invalid]="tourFormVm.controlInvalid('timezoneId')"
             />
+            @if (tourFormVm.timezoneSuggestions().length > 0) {
+              <div class="suggestion-list" role="listbox" aria-label="Timezone suggestions">
+                @for (suggestion of tourFormVm.timezoneSuggestions(); track suggestion.timezoneId) {
+                  <button
+                    type="button"
+                    role="option"
+                    class="suggestion-option"
+                    (click)="tourFormVm.selectTimezoneSuggestion(suggestion)"
+                  >
+                    <span>{{ suggestion.label }}</span>
+                  </button>
+                }
+              </div>
+            }
             @if (tourFormVm.controlError('timezoneId'); as message) {
               <small>{{ message }}</small>
             }
@@ -98,9 +115,26 @@
 
       <section class="form-section">
         <h2>Cover Image</h2>
-        <div class="cover-placeholder" aria-label="Cover image placeholder">
-          <div class="cover-placeholder__preview" aria-hidden="true">IMG</div>
-          <p>Cover image upload is represented as a placeholder for the intermediate hand-in.</p>
+        <div class="cover-upload">
+          <div class="cover-upload__preview" aria-hidden="true">IMG</div>
+          <div class="cover-upload__controls">
+            <label class="form-field">
+              <span>Image file</span>
+              <input
+                id="tour-cover-image"
+                name="coverImage"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                (change)="onCoverFileChange($event)"
+              />
+            </label>
+            <p>{{ tourFormVm.coverFileLabel() }}</p>
+            @if (tourFormVm.selectedCoverFile()) {
+              <button pButton type="button" severity="secondary" [outlined]="true" (click)="tourFormVm.clearSelectedCoverFile()">
+                <span pButtonLabel>Clear image</span>
+              </button>
+            }
+          </div>
         </div>
       </section>
 
@@ -117,8 +151,25 @@
               type="text"
               formControlName="startLocation"
               maxlength="255"
+              autocomplete="off"
+              (input)="tourFormVm.requestLocationSuggestions('start')"
               [attr.aria-invalid]="tourFormVm.controlInvalid('startLocation')"
             />
+            @if (tourFormVm.startLocationSuggestions().length > 0) {
+              <div class="suggestion-list" role="listbox" aria-label="Start location suggestions">
+                @for (suggestion of tourFormVm.startLocationSuggestions(); track suggestion.label) {
+                  <button
+                    type="button"
+                    role="option"
+                    class="suggestion-option"
+                    (click)="tourFormVm.selectLocationSuggestion('start', suggestion)"
+                  >
+                    <span>{{ suggestion.label }}</span>
+                    <small>{{ suggestion.locality }} {{ suggestion.country }}</small>
+                  </button>
+                }
+              </div>
+            }
             @if (tourFormVm.controlError('startLocation'); as message) {
               <small>{{ message }}</small>
             }
@@ -133,8 +184,25 @@
               type="text"
               formControlName="endLocation"
               maxlength="255"
+              autocomplete="off"
+              (input)="tourFormVm.requestLocationSuggestions('end')"
               [attr.aria-invalid]="tourFormVm.controlInvalid('endLocation')"
             />
+            @if (tourFormVm.endLocationSuggestions().length > 0) {
+              <div class="suggestion-list" role="listbox" aria-label="End location suggestions">
+                @for (suggestion of tourFormVm.endLocationSuggestions(); track suggestion.label) {
+                  <button
+                    type="button"
+                    role="option"
+                    class="suggestion-option"
+                    (click)="tourFormVm.selectLocationSuggestion('end', suggestion)"
+                  >
+                    <span>{{ suggestion.label }}</span>
+                    <small>{{ suggestion.locality }} {{ suggestion.country }}</small>
+                  </button>
+                }
+              </div>
+            }
             @if (tourFormVm.controlError('endLocation'); as message) {
               <small>{{ message }}</small>
             }

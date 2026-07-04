@@ -19,6 +19,12 @@ export type { RefreshRoute$Params as RefreshRoute$Params } from './fn/tours/refr
 export { refreshRoute as refreshRoute } from './fn/tours/refresh-route';
 export type { ImportTours$Params as ImportTours$Params } from './fn/tours/import-tours';
 export { importTours as importTours } from './fn/tours/import-tours';
+export type { SuggestTimezones$Params as SuggestTimezones$Params } from './fn/tours/suggest-timezones';
+export { suggestTimezones as suggestTimezones } from './fn/tours/suggest-timezones';
+export type { SuggestTours$Params as SuggestTours$Params } from './fn/tours/suggest-tours';
+export { suggestTours as suggestTours } from './fn/tours/suggest-tours';
+export type { SuggestLocations$Params as SuggestLocations$Params } from './fn/tours/suggest-locations';
+export { suggestLocations as suggestLocations } from './fn/tours/suggest-locations';
 export type { ExportTours$Params as ExportTours$Params } from './fn/tours/export-tours';
 export { exportTours as exportTours } from './fn/tours/export-tours';
 export type { GetLog$Params as GetLog$Params } from './fn/tour-logs/get-log';

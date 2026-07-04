@@ -65,6 +65,7 @@
 }
 
 .form-field {
+  position: relative;
   display: grid;
   gap: 0.35rem;
   min-width: 0;
@@ -80,6 +81,15 @@
   textarea {
     width: 100%;
     min-height: 2.5rem;
+  }
+
+  input[type="file"] {
+    min-height: auto;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 0.55rem;
+    background: #ffffff;
+    color: #0f172a;
   }
 
   select,
@@ -110,11 +120,57 @@
   }
 }
 
+.suggestion-list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  left: 0;
+  display: grid;
+  max-height: 14rem;
+  overflow: auto;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgb(15 23 42 / 14%);
+}
+
+.suggestion-option {
+  display: grid;
+  gap: 0.15rem;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0.65rem 0.75rem;
+  background: #ffffff;
+  color: #0f172a;
+  text-align: left;
+
+  &:hover,
+  &:focus-visible {
+    background: #eff6ff;
+    outline: none;
+  }
+
+  span {
+    color: #0f172a;
+    font-size: 0.925rem;
+    font-weight: 800;
+  }
+
+  small {
+    overflow-wrap: anywhere;
+    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+}
+
 .form-actions {
   justify-content: flex-end;
 }
 
-.cover-placeholder {
+.cover-upload {
   display: grid;
   grid-template-columns: 9rem minmax(0, 1fr);
   gap: 1rem;
@@ -126,7 +182,7 @@
   }
 }
 
-.cover-placeholder__preview {
+.cover-upload__preview {
   display: grid;
   aspect-ratio: 4 / 3;
   place-items: center;
@@ -143,10 +199,16 @@
   font-weight: 900;
 }
 
+.cover-upload__controls {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+}
+
 @media (max-width: 820px) {
   .form-grid,
   .form-grid--coordinates,
-  .cover-placeholder {
+  .cover-upload {
     grid-template-columns: 1fr;
   }
 }

@@ -108,9 +108,12 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [x] Tour Logs: validates user input with no crash on wrong input.
 - [x] Full-Text Search: search performs full-text search in tours, tour logs, and computed attributes.
   - Active intermediate search tokenizes tour fields, log fields, weather text, and computed labels through `IntermediateTourSearchIndex`.
+  - Search tokens now support prefix matching, so typing the first characters of a word can already return matching tours.
+  - `GET /api/tours/suggestions` exposes selectable tour-search suggestions for the Angular search field.
   - PostgreSQL schema already includes GIN `to_tsvector` indexes for tours, tour logs, and tour log weather.
 - [x] Full-Text Search: list of tours according to current search.
   - Tour list ViewModel now refreshes the list from the active search query automatically with debounce.
+  - The tour list now shows backend-backed suggestions and applies the selected suggestion immediately.
   - Manual Apply/Refresh and transport-filter changes still trigger immediate reloads.
 - [x] Import/Export: export tour data.
   - `GET /api/tours/export` returns the chosen JSON export format with schema version, export timestamp, import-compatible tours, route data, cover-image metadata, logs, and weather snapshots.
@@ -194,7 +197,7 @@ Implementation tasks:
    - Added configurable filesystem storage through `storage.images.*`.
    - Implemented upload/delete for `PUT /api/tours/{tourId}/cover-image` and `DELETE /api/tours/{tourId}/cover-image`.
    - Stored files below the configured image directory with generated safe names and kept only `CoverImageDto` metadata/path references on the tour.
-   - Current intermediate service keeps that metadata in memory until the PostgreSQL-backed DAL task is completed; the existing `tours` table/entity already has the matching metadata columns.
+   - Persistent runtime stores the cover metadata on the `tours` table/entity; the Angular form now uploads the selected file after create/update.
 16. [x] Implement computed tour attributes: popularity from log count and child-friendliness from difficulty, time, and distance.
    - Store numeric scores for sorting/calculation and non-overlapping text labels for search/display.
    - Avoid searchable negated labels like `not child friendly`; prefer labels such as `family friendly`, `moderate family suitability`, `challenging route`, and `adult oriented`.
@@ -205,14 +208,16 @@ Implementation tasks:
    - Include computed labels like popularity and child-friendliness in the PostgreSQL search document.
    - Add structured filters for exact category matching where full-text search would be ambiguous.
    - Added an intermediate tokenized search index covering tour fields, computed attributes, tour log comments/metrics, and weather text.
+   - Prefix matching and selectable suggestions were added for search-as-you-type behavior.
    - Wired `q` and `ratingMin` through the backend search path.
    - Existing PostgreSQL migration already includes separate GIN full-text indexes for tours, tour logs, and tour log weather.
-   - Added service tests for log-comment search, mixed tour/log query terms, computed-label search, rating filters, and dynamic log index updates.
+   - Added service tests for log-comment search, mixed tour/log query terms, computed-label search, rating filters, dynamic log index updates, prefix matching, and suggestions.
 18. [x] Ensure the tour list updates according to the active search query.
    - Added a debounced latest-request-wins search flow in `ToursListViewModel`.
    - Search input changes now trigger backend search automatically after a short debounce.
+   - Search input changes also fetch selectable tour suggestions through the generated API client.
    - Transport-filter changes, Apply, Refresh, and Delete reloads still run immediately.
-   - Added ViewModel tests for debounced search, immediate transport-filter refresh, and stale response handling.
+   - Added ViewModel tests for debounced search, immediate transport-filter refresh, stale response handling, and suggestion selection.
 19. [x] Implement export of tour data in the chosen file format.
    - Added `TourExportService` for the JSON export use case.
    - `GET /api/tours/export` now returns `TourExportDto` instead of the previous not-implemented response.
@@ -229,6 +234,8 @@ Implementation tasks:
    - Unique feature: automatic weather snapshot based on the location and time of each tour log.
    - Persist weather data in a one-to-one `tour_log_weather` table linked to `tour_logs`.
    - Use the midpoint between tour start/end coordinates for the weather lookup.
+   - Tour create/edit now supports start/end address autocomplete; selected addresses set latitude/longitude values that feed route and weather midpoint calculation.
+   - Tour log `datetime-local` values are interpreted in the tour's `timezoneId`, so weather snapshots are requested for the intended local tour time.
    - Use Open-Meteo as the weather provider: historical hourly weather for older logs, and forecast/current endpoints as fallback for very recent logs if historical data is not available yet.
    - Store only the selected weather snapshot values needed by the application, not the full external API response.
    - Treat weather snapshots as generated immutable data; refetch and replace them when a log's performed time or route coordinates change.
@@ -240,11 +247,12 @@ Implementation tasks:
    - Added SLF4J logging for upstream route/weather calls, local route/weather fallbacks, import/export counts, intermediate CRUD actions, cover-image storage/deletion, validation handling, upstream exceptions, and unexpected API errors.
    - Added an output-capture test for the route fallback logging path.
 23. [x] Add at least 20 useful unit tests covering critical business logic, controllers/services, validation, search, computed attributes, weather snapshots, import/export, and error handling.
-   - Backend suite now covers validation/errors, route calculation, computed attributes, search, import/export, cover images, weather snapshots, SQL-injection-like search input, architecture layer rules, auth, and persistent ownership checks with 49 passing tests.
+   - Backend suite now covers validation/errors, route calculation, computed attributes, search, search suggestions, location/timezone suggestions, import/export, cover images, weather snapshots, SQL-injection-like search input, architecture layer rules, auth, and persistent ownership checks with 55 passing tests.
 24. [x] Add frontend tests for high-risk UI flows if time allows.
    - Added `TourLogFormViewModel` tests covering invalid-form handling, create request mapping, edit/update request mapping with version, API validation errors, and navigation after successful saves.
    - Added `AuthSessionService` tests covering stored-session restore, auth-response persistence, sign out, and rejected empty tokens.
-   - Frontend test suite now passes with 27 tests.
+   - Added ViewModel tests for tour suggestions, location autocomplete, cover-image upload, and tour-timezone-aware log timestamps.
+   - Frontend test suite now passes with 30 tests.
 25. [x] Check SQL injection resistance by relying on JPA/repository parameter binding instead of string-built SQL.
    - Audited backend Java code for manual SQL/query APIs; repositories currently use Spring Data JPA derived query methods instead of string-built SQL.
    - Added `docs/sql-injection-resistance.md` and a search regression test that treats SQL-injection-like input as plain text.
@@ -255,9 +263,10 @@ Implementation tasks:
    - Database/class diagram draft exists, but full protocol documentation is not complete yet.
 28. [ ] Complete protocol sections for library decisions, lessons learned, design pattern, unit test decisions, unique feature, tracked time, and Git link.
 29. [ ] Run backend unit tests and fix failures.
-   - Backend tests passed for Task 8/9 on 2026-07-04 with 49 tests; final full-stack verification still belongs to the final packaging pass.
+   - Backend tests passed for the autocomplete/search/weather/upload corrections on 2026-07-04 with 55 tests; final full-stack verification still belongs to the final packaging pass.
 30. [ ] Run frontend build/tests and fix failures.
-   - Frontend build and tests passed for Task 8/9 on 2026-07-04 with 27 tests; `npm run build` still reports the existing initial bundle budget warning.
+   - Frontend build and tests passed for the autocomplete/search/weather/upload corrections on 2026-07-04 with 30 tests.
+   - `npm run build` still reports budget warnings: initial bundle is 528.17 kB instead of 500.00 kB, and `tours-list.scss` is 4.12 kB instead of 4.00 kB.
 31. [ ] Run a clean end-to-end manual test from empty database: register, login, create tour, fetch route/map, add logs, fetch weather snapshot, search, filter, import, export, edit, delete.
 32. [ ] Confirm final must-haves one by one against the checklist before packaging.
 33. [ ] Update README with final setup: database, environment variables, external image directory, backend start, frontend start, tests, and known assumptions.

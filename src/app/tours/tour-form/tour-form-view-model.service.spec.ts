@@ -11,6 +11,9 @@ describe('TourFormViewModel', () => {
     getTour: ReturnType<typeof vi.fn>;
     createTour: ReturnType<typeof vi.fn>;
     updateTour: ReturnType<typeof vi.fn>;
+    uploadCoverImage: ReturnType<typeof vi.fn>;
+    suggestLocations: ReturnType<typeof vi.fn>;
+    suggestTimezones: ReturnType<typeof vi.fn>;
   };
   let router: {
     navigate: ReturnType<typeof vi.fn>;
@@ -20,7 +23,10 @@ describe('TourFormViewModel', () => {
     toursApi = {
       getTour: vi.fn(),
       createTour: vi.fn(),
-      updateTour: vi.fn()
+      updateTour: vi.fn(),
+      uploadCoverImage: vi.fn(),
+      suggestLocations: vi.fn(),
+      suggestTimezones: vi.fn()
     };
     router = {
       navigate: vi.fn()
@@ -82,6 +88,60 @@ describe('TourFormViewModel', () => {
       }
     };
     expect(toursApi.createTour).toHaveBeenCalledWith({ body: expectedBody });
+    expect(toursApi.uploadCoverImage).not.toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['/tours', 42]);
+  });
+
+  it('applies a selected start location suggestion to location, coordinates, and timezone', () => {
+    const viewModel = TestBed.inject(TourFormViewModel);
+    viewModel.initializeCreate();
+
+    viewModel.selectLocationSuggestion('start', {
+      label: 'Wien Praterstern, Vienna, Austria',
+      locality: 'Vienna',
+      country: 'Austria',
+      coordinate: {
+        latitude: 48.2189,
+        longitude: 16.3927
+      },
+      timezoneId: 'Europe/Vienna'
+    });
+
+    expect(viewModel.form.controls.startLocation.value).toBe('Wien Praterstern, Vienna, Austria');
+    expect(viewModel.form.controls.startLatitude.value).toBe(48.2189);
+    expect(viewModel.form.controls.startLongitude.value).toBe(16.3927);
+    expect(viewModel.form.controls.timezoneId.value).toBe('Europe/Vienna');
+  });
+
+  it('uploads a selected cover image after creating the tour', async () => {
+    toursApi.createTour.mockReturnValue(of({ id: 42 }));
+    toursApi.uploadCoverImage.mockReturnValue(of({ path: 'covers/test.png' }));
+    const viewModel = TestBed.inject(TourFormViewModel);
+    viewModel.initializeCreate();
+    viewModel.form.setValue({
+      name: 'City loop',
+      description: 'Easy evening ride',
+      startLocation: 'Vienna',
+      endLocation: 'Prater',
+      transportType: 'BIKE',
+      timezoneId: 'Europe/Vienna',
+      startLatitude: 48.2082,
+      startLongitude: 16.3738,
+      endLatitude: 48.2167,
+      endLongitude: 16.395
+    });
+    const file = new File(['image-content'], 'cover.png', { type: 'image/png' });
+    viewModel.selectCoverFile(file);
+
+    viewModel.submit();
+    await flushPromises();
+
+    expect(toursApi.uploadCoverImage).toHaveBeenCalledWith({
+      tourId: 42,
+      body: {
+        file
+      }
+    });
     expect(router.navigate).toHaveBeenCalledWith(['/tours', 42]);
   });
 

@@ -24,14 +24,23 @@ import { GetTour$Params } from '../fn/tours/get-tour';
 import { ImportResultDto } from '../models/import-result-dto';
 import { importTours } from '../fn/tours/import-tours';
 import { ImportTours$Params } from '../fn/tours/import-tours';
+import { LocationSuggestionDto } from '../models/location-suggestion-dto';
 import { refreshRoute } from '../fn/tours/refresh-route';
 import { RefreshRoute$Params } from '../fn/tours/refresh-route';
 import { searchTours } from '../fn/tours/search-tours';
 import { SearchTours$Params } from '../fn/tours/search-tours';
+import { suggestLocations } from '../fn/tours/suggest-locations';
+import { SuggestLocations$Params } from '../fn/tours/suggest-locations';
+import { suggestTimezones } from '../fn/tours/suggest-timezones';
+import { SuggestTimezones$Params } from '../fn/tours/suggest-timezones';
+import { suggestTours } from '../fn/tours/suggest-tours';
+import { SuggestTours$Params } from '../fn/tours/suggest-tours';
+import { TimezoneSuggestionDto } from '../models/timezone-suggestion-dto';
 import { TourDetailDto } from '../models/tour-detail-dto';
 import { TourExportDto } from '../models/tour-export-dto';
 import { TourRouteDto } from '../models/tour-route-dto';
 import { TourSearchResponse } from '../models/tour-search-response';
+import { TourSuggestionDto } from '../models/tour-suggestion-dto';
 import { updateTour } from '../fn/tours/update-tour';
 import { UpdateTour$Params } from '../fn/tours/update-tour';
 import { uploadCoverImage } from '../fn/tours/upload-cover-image';
@@ -359,6 +368,111 @@ export class ToursService extends BaseService {
     const resp = this.importTours$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<ImportResultDto>): ImportResultDto => r.body)
+    );
+  }
+
+  /** Path part for operation `suggestTimezones()` */
+  static readonly SuggestTimezonesPath = '/api/tours/timezone-suggestions';
+
+  /**
+   * Suggest IANA timezone ids for tour forms.
+   *
+   *
+   *
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `suggestTimezones()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  suggestTimezones$Response(params?: SuggestTimezones$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<TimezoneSuggestionDto>>> {
+    const obs = suggestTimezones(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * Suggest IANA timezone ids for tour forms.
+   *
+   *
+   *
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `suggestTimezones$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  suggestTimezones(params?: SuggestTimezones$Params, context?: HttpContext): Observable<Array<TimezoneSuggestionDto>> {
+    const resp = this.suggestTimezones$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<Array<TimezoneSuggestionDto>>): Array<TimezoneSuggestionDto> => r.body)
+    );
+  }
+
+  /** Path part for operation `suggestTours()` */
+  static readonly SuggestToursPath = '/api/tours/suggestions';
+
+  /**
+   * Suggest user-owned tours for autocomplete search.
+   *
+   *
+   *
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `suggestTours()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  suggestTours$Response(params: SuggestTours$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<TourSuggestionDto>>> {
+    const obs = suggestTours(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * Suggest user-owned tours for autocomplete search.
+   *
+   *
+   *
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `suggestTours$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  suggestTours(params: SuggestTours$Params, context?: HttpContext): Observable<Array<TourSuggestionDto>> {
+    const resp = this.suggestTours$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<Array<TourSuggestionDto>>): Array<TourSuggestionDto> => r.body)
+    );
+  }
+
+  /** Path part for operation `suggestLocations()` */
+  static readonly SuggestLocationsPath = '/api/tours/location-suggestions';
+
+  /**
+   * Suggest route locations and coordinates for tour forms.
+   *
+   *
+   *
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `suggestLocations()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  suggestLocations$Response(params: SuggestLocations$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<LocationSuggestionDto>>> {
+    const obs = suggestLocations(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * Suggest route locations and coordinates for tour forms.
+   *
+   *
+   *
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `suggestLocations$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  suggestLocations(params: SuggestLocations$Params, context?: HttpContext): Observable<Array<LocationSuggestionDto>> {
+    const resp = this.suggestLocations$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<Array<LocationSuggestionDto>>): Array<LocationSuggestionDto> => r.body)
     );
   }
 

@@ -10,6 +10,7 @@
 }
 
 .filter-field {
+  position: relative;
   display: grid;
   gap: 0.35rem;
   min-width: 0;
@@ -32,6 +33,51 @@
     padding: 0.5rem 0.75rem;
     background: #ffffff;
     color: #0f172a;
+  }
+}
+
+.suggestion-list {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  left: 0;
+  display: grid;
+  max-height: 15rem;
+  overflow: auto;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgb(15 23 42 / 14%);
+}
+
+.suggestion-option {
+  display: grid;
+  gap: 0.15rem;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0.65rem 0.75rem;
+  background: #ffffff;
+  color: #0f172a;
+  text-align: left;
+
+  &:hover,
+  &:focus-visible {
+    background: #eff6ff;
+    outline: none;
+  }
+
+  span {
+    color: #0f172a;
+    font-size: 0.925rem;
+    font-weight: 800;
+  }
+
+  small {
+    overflow-wrap: anywhere;
+    color: #64748b;
+    font-size: 0.8rem;
   }
 }
 

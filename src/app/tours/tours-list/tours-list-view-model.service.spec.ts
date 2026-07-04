@@ -8,12 +8,14 @@ import { ToursListViewModel } from './tours-list-view-model.service';
 describe('ToursListViewModel', () => {
   let toursApi: {
     searchTours: ReturnType<typeof vi.fn>;
+    suggestTours: ReturnType<typeof vi.fn>;
     deleteTour: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
     toursApi = {
       searchTours: vi.fn(),
+      suggestTours: vi.fn().mockReturnValue(of([])),
       deleteTour: vi.fn()
     };
 
@@ -73,7 +75,17 @@ describe('ToursListViewModel', () => {
   });
 
   it('passes active filters as structured API parameters', async () => {
-    toursApi.searchTours.mockReturnValue(of({ tours: [] }));
+    toursApi.searchTours.mockReturnValue(of({
+      tours: [
+        {
+          id: 7,
+          name: 'Danube Ride',
+          startLocation: 'Vienna',
+          endLocation: 'Tulln',
+          transportType: 'BIKE'
+        }
+      ]
+    }));
 
     const viewModel = TestBed.inject(ToursListViewModel);
     viewModel.setSearchQuery(' family ');
@@ -119,6 +131,45 @@ describe('ToursListViewModel', () => {
     ]);
     vi.useRealTimers();
   });
+
+  it('loads selectable tour suggestions and applies a selected suggestion', async () => {
+    vi.useFakeTimers();
+    toursApi.searchTours.mockReturnValue(of({
+      tours: [
+        {
+          id: 7,
+          name: 'Danube Ride',
+          startLocation: 'Vienna',
+          endLocation: 'Tulln',
+          transportType: 'BIKE'
+        }
+      ]
+    }));
+    toursApi.suggestTours.mockReturnValue(of([
+      {
+        tourId: 7,
+        label: 'Danube Ride',
+        route: 'Vienna to Tulln'
+      }
+    ]));
+
+    const viewModel = TestBed.inject(ToursListViewModel);
+    viewModel.setSearchQuery('dan');
+    vi.advanceTimersByTime(180);
+    await flushPromises();
+
+    expect(toursApi.suggestTours).toHaveBeenCalledWith({ q: 'dan', limit: 6 });
+    expect(viewModel.tourSuggestions()).toHaveLength(1);
+
+    viewModel.selectSuggestion(viewModel.tourSuggestions()[0]);
+    await flushPromises();
+
+    expect(viewModel.searchQuery()).toBe('Danube Ride');
+    expect(viewModel.selectedTourId()).toBe(7);
+    expect(viewModel.tourSuggestions()).toEqual([]);
+    vi.useRealTimers();
+  });
+
 
   it('refreshes immediately when the transport filter changes', async () => {
     toursApi.searchTours.mockReturnValue(of({ tours: [] }));
