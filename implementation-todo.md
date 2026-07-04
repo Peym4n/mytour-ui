@@ -91,18 +91,18 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [x] Must have: uses configuration, not code, at minimum for the DB connection string.
 - [x] Must have: integrates the OpenRouteServices.org API and Leaflet.
 - [x] Must have: implements at least 20 unit tests.
-  - Backend test suite currently passes with 41 tests after the weather snapshot implementation.
+  - Backend test suite currently passes with 46 tests after the PostgreSQL-backed persistence path.
 - [x] GUI: correct data binding between UI elements and view model properties.
 - [ ] GUI: UI responds to window size changes.
 - [x] GUI: defines a reusable UI component.
-- [ ] Tours: create, modify, and delete tours, also in DAL.
+- [x] Tours: create, modify, and delete tours, also in DAL.
 - [x] Tours: tours have required attributes, including image, and are managed in a list view.
 - [x] Tours: tours have computed attributes.
   - Popularity is calculated from tour log count.
   - Child-friendliness is calculated from average difficulty, total time, and total distance.
 - [x] Tours: tour details show all tour attributes of a selected tour and also the map image.
 - [x] Tours: validates user input with no crash on wrong input.
-- [ ] Tour Logs: create, modify, and delete tour logs, also in DAL.
+- [x] Tour Logs: create, modify, and delete tour logs, also in DAL.
 - [x] Tour Logs: tour logs have required attributes.
 - [x] Tour Logs: show all logs of a selected tour with all log attributes in a list view.
 - [x] Tour Logs: validates user input with no crash on wrong input.
@@ -124,7 +124,7 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [ ] Non-functional: layers define their own exceptions, no implementation-specific exceptions escape.
 - [x] Non-functional: uses the OpenRouteServices.org Directions API for tour retrieval.
 - [x] Non-functional: uses Leaflet for the map.
-- [ ] Non-functional: all tour data, maybe except image data, is stored in the database.
+- [x] Non-functional: all tour data, maybe except image data, is stored in the database.
 - [x] Non-functional: all configuration information is stored in configuration, not in code.
 - [ ] Non-functional: logs exceptions, errors, and other useful technical information.
 - [ ] Non-functional: quality of unit tests (usefulness, no duplicates).
@@ -142,9 +142,12 @@ Implementation tasks:
 
 1. [ ] Re-read the final checklist and map every must-have to code, tests, or protocol evidence.
 2. [ ] Finalize the backend package structure for layered architecture: controller/presentation, business/service, data access/repository, domain/entity, DTO/mapper, configuration, and exception packages.
-3. [ ] Replace any intermediate in-memory persistence with PostgreSQL-backed JPA/Hibernate entities and repositories.
+3. [x] Replace any intermediate in-memory persistence with PostgreSQL-backed JPA/Hibernate entities and repositories.
    - Use numeric database IDs, but enforce security through authenticated user ownership checks on every tour/log query.
    - Keep the database model independent of the old draft class diagram.
+   - Runtime Tour/TourLog operations now use Spring Data JPA repositories when the application runs with JPA enabled.
+   - Existing in-memory seed data remains only for direct unit-test fixtures and for the JPA-disabled context smoke test.
+   - Tour and log reads/mutations use ownership-scoped repository methods such as `findByIdAndUser_Id` and `findByIdAndTour_IdAndTour_User_Id`.
 4. [x] Configure PostgreSQL through external configuration only: environment variables, `.env`, or application config templates without committed secrets.
 5. [x] Add Flyway migrations for database initialization.
    - Current migration: `mytour-api/src/main/resources/db/migration/V1__init_schema.sql`.
@@ -152,11 +155,14 @@ Implementation tasks:
    - Verified against a fresh PostgreSQL database: Flyway applied `V1__init_schema`, created `flyway_schema_history`, and Hibernate validation passed.
    - Target tables: `app_users`, `tours`, `tour_routes`, `tour_logs`, and `tour_log_weather`.
    - Store one cover image per tour as filesystem metadata/path fields on `tours`, not as binary data in PostgreSQL.
-6. [ ] Implement Tour CRUD through the full stack: Angular service, controller, business layer, DAL/repository, and database.
-7. [ ] Implement TourLog CRUD through the full stack with correct one-tour-to-many-logs relationship.
+6. [x] Implement Tour CRUD through the full stack: Angular service, controller, business layer, DAL/repository, and database.
+   - Backend runtime now persists Tour CRUD via JPA/Hibernate repositories; Angular services were already connected to the backend endpoints.
+7. [x] Implement TourLog CRUD through the full stack with correct one-tour-to-many-logs relationship.
    - Store difficulty and rating as numeric values from 1 to 5.
+   - Backend runtime now persists TourLog CRUD via `TourLogRepository` with the existing one-tour-to-many-logs schema.
 8. [ ] Ensure tours and tour logs belong to a single user and cannot leak across users.
    - Repository/service methods must filter by authenticated `user_id`, never by `tour_id` or `log_id` alone.
+   - Persistent Tour/TourLog services now use user-scoped repository methods; this remains open until Task 9 wires the scope to real authentication instead of the temporary intermediate user.
 9. [ ] Implement self-registration and credential-based login.
    - Use username/password credentials with JWT-based authentication.
    - Do not require email addresses, email verification, or email sending.
@@ -231,7 +237,7 @@ Implementation tasks:
    - Added SLF4J logging for upstream route/weather calls, local route/weather fallbacks, import/export counts, intermediate CRUD actions, cover-image storage/deletion, validation handling, upstream exceptions, and unexpected API errors.
    - Added an output-capture test for the route fallback logging path.
 23. [x] Add at least 20 useful unit tests covering critical business logic, controllers/services, validation, search, computed attributes, weather snapshots, import/export, and error handling.
-   - Backend suite now covers validation/errors, route calculation, computed attributes, search, import/export, cover images, weather snapshots, SQL-injection-like search input, and architecture layer rules with 43 passing tests.
+   - Backend suite now covers validation/errors, route calculation, computed attributes, search, import/export, cover images, weather snapshots, SQL-injection-like search input, architecture layer rules, and persistent ownership checks with 46 passing tests.
 24. [x] Add frontend tests for high-risk UI flows if time allows.
    - Added `TourLogFormViewModel` tests covering invalid-form handling, create request mapping, edit/update request mapping with version, API validation errors, and navigation after successful saves.
    - Frontend test suite now passes with 24 tests.
@@ -245,7 +251,7 @@ Implementation tasks:
    - Database/class diagram draft exists, but full protocol documentation is not complete yet.
 28. [ ] Complete protocol sections for library decisions, lessons learned, design pattern, unit test decisions, unique feature, tracked time, and Git link.
 29. [ ] Run backend unit tests and fix failures.
-   - Backend tests passed for Task 26 on 2026-07-04 with 43 tests; final full-stack verification still belongs to the final packaging pass.
+   - Backend tests passed for Task 3 on 2026-07-04 with 46 tests; final full-stack verification still belongs to the final packaging pass.
 30. [ ] Run frontend build/tests and fix failures.
    - Frontend build and tests passed for Task 24 on 2026-07-04 with 24 tests; `npm run build` still reports the existing initial bundle budget warning.
 31. [ ] Run a clean end-to-end manual test from empty database: register, login, create tour, fetch route/map, add logs, fetch weather snapshot, search, filter, import, export, edit, delete.
