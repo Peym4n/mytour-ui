@@ -23,6 +23,21 @@
       >
         <span pButtonLabel>Backend Health</span>
       </a>
+      @if (authSession.isAuthenticated()) {
+        <button pButton type="button" severity="secondary" [text]="true" (click)="signOut()">
+          <span pButtonLabel>Sign out</span>
+        </button>
+      } @else {
+        <a
+          pButton
+          routerLink="/auth"
+          routerLinkActive="active-route"
+          [text]="true"
+          severity="secondary"
+        >
+          <span pButtonLabel>Sign in</span>
+        </a>
+      }
     </nav>
   </ng-template>
 </p-toolbar>

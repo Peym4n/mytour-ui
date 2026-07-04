@@ -1,0 +1,50 @@
+.auth-shell {
+  min-height: calc(100dvh - 5rem);
+  display: grid;
+  align-items: start;
+  justify-items: center;
+  padding: 3rem 1rem;
+}
+
+.auth-form {
+  width: min(100%, 28rem);
+  display: grid;
+  gap: 1rem;
+}
+
+.auth-header {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.auth-header p {
+  margin: 0;
+  color: var(--p-text-muted-color);
+  font-size: 0.9rem;
+}
+
+.auth-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.auth-field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.auth-field span {
+  font-weight: 600;
+}
+
+.auth-field small {
+  color: var(--p-red-600);
+}
+
+.auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}

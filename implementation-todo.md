@@ -91,7 +91,7 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [x] Must have: uses configuration, not code, at minimum for the DB connection string.
 - [x] Must have: integrates the OpenRouteServices.org API and Leaflet.
 - [x] Must have: implements at least 20 unit tests.
-  - Backend test suite currently passes with 46 tests after the PostgreSQL-backed persistence path.
+  - Backend test suite currently passes with 49 tests after auth-backed ownership and login/registration.
 - [x] GUI: correct data binding between UI elements and view model properties.
 - [ ] GUI: UI responds to window size changes.
 - [x] GUI: defines a reusable UI component.
@@ -160,13 +160,16 @@ Implementation tasks:
 7. [x] Implement TourLog CRUD through the full stack with correct one-tour-to-many-logs relationship.
    - Store difficulty and rating as numeric values from 1 to 5.
    - Backend runtime now persists TourLog CRUD via `TourLogRepository` with the existing one-tour-to-many-logs schema.
-8. [ ] Ensure tours and tour logs belong to a single user and cannot leak across users.
+8. [x] Ensure tours and tour logs belong to a single user and cannot leak across users.
    - Repository/service methods must filter by authenticated `user_id`, never by `tour_id` or `log_id` alone.
-   - Persistent Tour/TourLog services now use user-scoped repository methods; this remains open until Task 9 wires the scope to real authentication instead of the temporary intermediate user.
-9. [ ] Implement self-registration and credential-based login.
+   - Persistent Tour/TourLog services now use user-scoped repository methods and the authenticated JWT principal instead of the temporary intermediate user.
+   - `PersistentOwnershipServiceTest` verifies that another user's tour/log IDs behave like not found.
+9. [x] Implement self-registration and credential-based login.
    - Use username/password credentials with JWT-based authentication.
    - Do not require email addresses, email verification, or email sending.
    - Enforce case-insensitive unique usernames through `username_normalized`.
+   - Added `/api/auth/register`, `/api/auth/login`, and `/api/auth/me` backed by BCrypt password hashes and HMAC-SHA256 JWT bearer tokens.
+   - Angular now has an auth page, JWT session storage, an auth interceptor, route guard protection for `/tours`, and sign-in/sign-out navigation.
 10. [x] Add backend validation for all incoming tour and tour log DTOs, matching frontend validation where possible.
 11. [x] Add centralized exception handling so implementation-specific exceptions do not escape across layers.
    - Added `ApiExceptionHandler` in `mytour-api/src/main/java/org/fhtw/mytourapi/exception` to map `ResponseStatusException`, validation errors, malformed requests, and unexpected failures to the existing `ApiErrorResponse` DTO.
@@ -237,10 +240,11 @@ Implementation tasks:
    - Added SLF4J logging for upstream route/weather calls, local route/weather fallbacks, import/export counts, intermediate CRUD actions, cover-image storage/deletion, validation handling, upstream exceptions, and unexpected API errors.
    - Added an output-capture test for the route fallback logging path.
 23. [x] Add at least 20 useful unit tests covering critical business logic, controllers/services, validation, search, computed attributes, weather snapshots, import/export, and error handling.
-   - Backend suite now covers validation/errors, route calculation, computed attributes, search, import/export, cover images, weather snapshots, SQL-injection-like search input, architecture layer rules, and persistent ownership checks with 46 passing tests.
+   - Backend suite now covers validation/errors, route calculation, computed attributes, search, import/export, cover images, weather snapshots, SQL-injection-like search input, architecture layer rules, auth, and persistent ownership checks with 49 passing tests.
 24. [x] Add frontend tests for high-risk UI flows if time allows.
    - Added `TourLogFormViewModel` tests covering invalid-form handling, create request mapping, edit/update request mapping with version, API validation errors, and navigation after successful saves.
-   - Frontend test suite now passes with 24 tests.
+   - Added `AuthSessionService` tests covering stored-session restore, auth-response persistence, sign out, and rejected empty tokens.
+   - Frontend test suite now passes with 27 tests.
 25. [x] Check SQL injection resistance by relying on JPA/repository parameter binding instead of string-built SQL.
    - Audited backend Java code for manual SQL/query APIs; repositories currently use Spring Data JPA derived query methods instead of string-built SQL.
    - Added `docs/sql-injection-resistance.md` and a search regression test that treats SQL-injection-like input as plain text.
@@ -251,9 +255,9 @@ Implementation tasks:
    - Database/class diagram draft exists, but full protocol documentation is not complete yet.
 28. [ ] Complete protocol sections for library decisions, lessons learned, design pattern, unit test decisions, unique feature, tracked time, and Git link.
 29. [ ] Run backend unit tests and fix failures.
-   - Backend tests passed for Task 3 on 2026-07-04 with 46 tests; final full-stack verification still belongs to the final packaging pass.
+   - Backend tests passed for Task 8/9 on 2026-07-04 with 49 tests; final full-stack verification still belongs to the final packaging pass.
 30. [ ] Run frontend build/tests and fix failures.
-   - Frontend build and tests passed for Task 24 on 2026-07-04 with 24 tests; `npm run build` still reports the existing initial bundle budget warning.
+   - Frontend build and tests passed for Task 8/9 on 2026-07-04 with 27 tests; `npm run build` still reports the existing initial bundle budget warning.
 31. [ ] Run a clean end-to-end manual test from empty database: register, login, create tour, fetch route/map, add logs, fetch weather snapshot, search, filter, import, export, edit, delete.
 32. [ ] Confirm final must-haves one by one against the checklist before packaging.
 33. [ ] Update README with final setup: database, environment variables, external image directory, backend start, frontend start, tests, and known assumptions.

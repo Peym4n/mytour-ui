@@ -1,0 +1,57 @@
+<section class="auth-shell">
+  <form class="auth-form" [formGroup]="authVm.form" (ngSubmit)="authVm.submit()" novalidate>
+    <header class="auth-header">
+      <p>MyTour Account</p>
+      <h1>{{ authVm.title() }}</h1>
+    </header>
+
+    @if (authVm.errorMessage(); as errorMessage) {
+      <app-status-message variant="error">
+        {{ errorMessage }}
+      </app-status-message>
+    }
+
+    <label class="auth-field">
+      <span>Username</span>
+      <input
+        pInputText
+        id="auth-username"
+        name="username"
+        type="text"
+        autocomplete="username"
+        formControlName="username"
+        maxlength="50"
+        [attr.aria-invalid]="authVm.controlInvalid('username')"
+      />
+      @if (authVm.controlError('username'); as message) {
+        <small>{{ message }}</small>
+      }
+    </label>
+
+    <label class="auth-field">
+      <span>Password</span>
+      <input
+        pInputText
+        id="auth-password"
+        name="password"
+        type="password"
+        autocomplete="current-password"
+        formControlName="password"
+        maxlength="128"
+        [attr.aria-invalid]="authVm.controlInvalid('password')"
+      />
+      @if (authVm.controlError('password'); as message) {
+        <small>{{ message }}</small>
+      }
+    </label>
+
+    <div class="auth-actions">
+      <button pButton type="submit" [loading]="authVm.loading()" [disabled]="authVm.loading()">
+        <span pButtonLabel>{{ authVm.submitLabel() }}</span>
+      </button>
+      <button pButton type="button" severity="secondary" [text]="true" (click)="authVm.switchMode()">
+        <span pButtonLabel>{{ authVm.alternateActionLabel() }}</span>
+      </button>
+    </div>
+  </form>
+</section>
