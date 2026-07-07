@@ -172,13 +172,15 @@
             [attr.aria-pressed]="tourRow.id === tourVm.selectedTourId()"
             (click)="tourVm.selectTour(tourRow.id)"
           >
-            <span
+            <app-cover-image
               class="tour-row__image"
+              [tourId]="tourRow.id"
+              [coverImage]="tourRow.tour.coverImage"
+              [fallbackText]="tourRow.coverImage.initials"
+              [altText]="tourRow.coverImage.label"
               [class.tour-row__image--empty]="!tourRow.coverImage.hasImage"
               [attr.aria-label]="tourRow.coverImage.label"
-            >
-              {{ tourRow.coverImage.initials }}
-            </span>
+            />
 
             <span class="tour-row__main">
               <span class="tour-row__title">{{ tourRow.name }}</span>
@@ -203,13 +205,15 @@
   <aside class="selection-panel" aria-labelledby="selected-tour-title">
     @if (tourVm.selectedTour(); as selectedTour) {
       <div class="selection-panel__header">
-        <div
+        <app-cover-image
           class="selection-panel__image"
+          [tourId]="selectedTour.id"
+          [coverImage]="selectedTour.tour.coverImage"
+          [fallbackText]="selectedTour.coverImage.initials"
+          [altText]="selectedTour.coverImage.label"
           [class.selection-panel__image--empty]="!selectedTour.coverImage.hasImage"
           [attr.aria-label]="selectedTour.coverImage.label"
-        >
-          {{ selectedTour.coverImage.initials }}
-        </div>
+        />
         <p-tag
           [value]="selectedTour.transport.label"
           [severity]="selectedTour.transport.severity"

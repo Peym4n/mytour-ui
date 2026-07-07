@@ -5,11 +5,12 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
 
 import { StatusMessageComponent } from '../../shared/status-message/status-message';
+import { CoverImageComponent } from '../cover-image/cover-image';
 import { TourTransportFilter, ToursListViewModel } from './tours-list-view-model.service';
 
 @Component({
   selector: 'app-tours-list',
-  imports: [RouterLink, ButtonModule, InputTextModule, TagModule, StatusMessageComponent],
+  imports: [RouterLink, ButtonModule, InputTextModule, TagModule, StatusMessageComponent, CoverImageComponent],
   templateUrl: './tours-list.html',
   styleUrl: './tours-list.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
