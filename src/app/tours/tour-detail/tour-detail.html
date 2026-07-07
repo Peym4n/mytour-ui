@@ -165,9 +165,13 @@
         <h2>Cover Image</h2>
         @if (tourView.coverImage; as coverImage) {
           <div class="image-field">
-            <div class="image-field__preview" aria-hidden="true">
-              <span>{{ coverImage.initials }}</span>
-            </div>
+            <app-cover-image
+              class="image-field__preview"
+              [tourId]="tourView.id"
+              [coverImage]="tourView.tour.coverImage"
+              [fallbackText]="coverImage.initials"
+              [altText]="coverImage.fileName"
+            />
             <dl class="detail-rows">
               <div>
                 <dt>File</dt>

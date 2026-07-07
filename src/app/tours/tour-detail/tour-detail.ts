@@ -7,10 +7,11 @@ import { TagModule } from 'primeng/tag';
 import { StatusMessageComponent } from '../../shared/status-message/status-message';
 import { TourDetailViewModel } from './tour-detail-view-model.service';
 import { TourMapComponent } from '../tour-map/tour-map';
+import { CoverImageComponent } from '../cover-image/cover-image';
 
 @Component({
   selector: 'app-tour-detail',
-  imports: [RouterLink, ButtonModule, TagModule, StatusMessageComponent, TourMapComponent],
+  imports: [RouterLink, ButtonModule, TagModule, StatusMessageComponent, TourMapComponent, CoverImageComponent],
   templateUrl: './tour-detail.html',
   styleUrl: './tour-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

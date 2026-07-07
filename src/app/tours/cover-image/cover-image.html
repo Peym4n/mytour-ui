@@ -1,0 +1,5 @@
+@if (imageUrl(); as url) {
+  <img [src]="url" [alt]="altText()" />
+} @else {
+  <span>{{ fallbackText() }}</span>
+}
