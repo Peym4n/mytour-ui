@@ -1,6 +1,6 @@
 param(
-  [string]$InputPath = (Join-Path $PSScriptRoot "..\intermediate-protocol.md"),
-  [string]$OutputPath = (Join-Path $PSScriptRoot "..\..\..\intermediate-protocol.pdf")
+  [string]$InputPath = (Join-Path $PSScriptRoot "..\final-protocol.md"),
+  [string]$OutputPath = (Join-Path $PSScriptRoot "..\..\..\final-protocol.pdf")
 )
 
 $ErrorActionPreference = "Stop"
@@ -8,9 +8,9 @@ $ErrorActionPreference = "Stop"
 $inputFile = Resolve-Path -LiteralPath $InputPath
 $docsDir = Split-Path -Parent $inputFile
 $outputFile = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputPath)
-$tempFile = Join-Path $docsDir ".intermediate-protocol.pandoc.md"
-$tempPdf = Join-Path $docsDir ".intermediate-protocol.pandoc.pdf"
-$fallbackPdf = Join-Path $docsDir "intermediate-protocol-new.pdf"
+$tempFile = Join-Path $docsDir ".final-protocol.pandoc.md"
+$tempPdf = Join-Path $docsDir ".final-protocol.pandoc.pdf"
+$fallbackPdf = Join-Path $docsDir "final-protocol-new.pdf"
 
 function ConvertTo-LatexText {
   param([string]$Text)
@@ -121,20 +121,27 @@ function Convert-TimeTrackingTableToLatex {
 }
 
 $markdown = Get-Content -Raw -LiteralPath $inputFile
-$pattern = '(?s)(## 12\. Time Tracking\s+)(\| Date \| Person \| Area \| Time \| Work performed \|.*?)(?=\r?\n## 13\. Git Repository)'
-$match = [regex]::Match($markdown, $pattern)
-
-if (-not $match.Success) {
-  throw "Could not find the Markdown time tracking table to replace."
+$tableHeader = '| Phase | Person | Area | Time | Work performed |'
+$tableStart = $markdown.IndexOf($tableHeader, [StringComparison]::Ordinal)
+if ($tableStart -lt 0) {
+  throw "Could not find the final protocol time tracking table header."
 }
 
-$latexTimeTrackingTable = Convert-TimeTrackingTableToLatex $match.Groups[2].Value
-$replaced = $markdown.Substring(0, $match.Groups[2].Index) +
-  $latexTimeTrackingTable.TrimEnd() +
-  [Environment]::NewLine +
-  $markdown.Substring($match.Groups[2].Index + $match.Groups[2].Length)
+$nextHeading = [regex]::Match($markdown.Substring($tableStart), '(?m)^## \d+\. Git Repository\s*$')
+if (-not $nextHeading.Success) {
+  throw "Could not find the Git Repository heading after the time tracking table."
+}
 
-$tocPattern = '(?m)^## 1\. Intermediate Scope\s*$'
+$tableEnd = $tableStart + $nextHeading.Index
+$tableMarkdown = $markdown.Substring($tableStart, $tableEnd - $tableStart).TrimEnd()
+
+$latexTimeTrackingTable = Convert-TimeTrackingTableToLatex $tableMarkdown
+$replaced = $markdown.Substring(0, $tableStart) +
+  $latexTimeTrackingTable.TrimEnd() +
+  [Environment]::NewLine + [Environment]::NewLine +
+  $markdown.Substring($tableEnd).TrimStart()
+
+$tocPattern = '(?m)^## 1\..*$'
 $tocMatch = [regex]::Match($replaced, $tocPattern)
 if (-not $tocMatch.Success) {
   throw "Could not find the first numbered section for table-of-contents placement."
