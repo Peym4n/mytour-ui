@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, debounce, from, map, of, Subject, switchMap, take, tap, timer } from 'rxjs';
 
 import { SearchTours$Params } from '../../api/generated/fn/tours/search-tours';
+import { DemoDataService } from '../../api/generated/services/demo-data.service';
 import { ToursService } from '../../api/generated/services/tours.service';
 import { TourSummaryDto } from '../../api/generated/models/tour-summary-dto';
 import { TourSuggestionDto } from '../../api/generated/models/tour-suggestion-dto';
@@ -56,6 +57,7 @@ export interface TourListRow {
 export class ToursListViewModel {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toursApi = inject(ToursService);
+  private readonly demoDataApi = inject(DemoDataService);
   private readonly toursState = signal<TourSummaryDto[]>([]);
   private readonly selectedTourIdState = signal<number | null>(null);
   private readonly pendingDeleteIdState = signal<number | null>(null);
@@ -112,6 +114,11 @@ export class ToursListViewModel {
   readonly hasTourSuggestions = computed(() => this.tourSuggestionsState().length > 0);
 
   readonly visibleTourCount = computed(() => this.tourRows().length);
+
+  private readonly seedingDemoState = signal(false);
+  readonly seedingDemo = this.seedingDemoState.asReadonly();
+  private readonly pendingSeedDemoState = signal(false);
+  readonly pendingSeedDemo = this.pendingSeedDemoState.asReadonly();
 
   constructor() {
     this.tourLoadRequests.pipe(
@@ -207,6 +214,35 @@ export class ToursListViewModel {
       error: () => {
         this.loadingState.set(false);
         this.errorMessageState.set('The tour could not be deleted. Please check the backend connection.');
+      }
+    });
+  }
+
+  requestSeedDemo(): void {
+    this.pendingSeedDemoState.set(true);
+  }
+
+  cancelSeedDemo(): void {
+    this.pendingSeedDemoState.set(false);
+  }
+
+  confirmSeedDemo(): void {
+    this.pendingSeedDemoState.set(false);
+    this.seedingDemoState.set(true);
+    this.errorMessageState.set(null);
+    this.noticeMessageState.set(null);
+
+    this.demoDataApi.seedDemoData().pipe(take(1)).subscribe({
+      next: (result) => {
+        this.seedingDemoState.set(false);
+        this.noticeMessageState.set(
+          `Demo data loaded: ${result.createdTourCount} tours and ${result.createdLogCount} logs.`
+        );
+        this.loadTours();
+      },
+      error: () => {
+        this.seedingDemoState.set(false);
+        this.errorMessageState.set('Demo data could not be loaded. Please check the backend connection.');
       }
     });
   }

@@ -20,6 +20,17 @@
       >
         <span pButtonLabel>Refresh</span>
       </button>
+      <button
+        pButton
+        type="button"
+        class="p-button-sm"
+        severity="help"
+        [outlined]="true"
+        (click)="tourVm.requestSeedDemo()"
+        [disabled]="tourVm.loading() || tourVm.seedingDemo()"
+      >
+        <span pButtonLabel>Load demo data</span>
+      </button>
     </div>
   </div>
 </section>
@@ -96,6 +107,39 @@
     @if (tourVm.errorMessage(); as errorMessage) {
       <app-status-message variant="error" [spaced]="true">
         {{ errorMessage }}
+      </app-status-message>
+    }
+
+    @if (tourVm.pendingSeedDemo()) {
+      <div class="delete-panel" role="alert">
+        <p>Replace all your tours with demo data? This will delete your existing tours and logs.</p>
+        <div>
+          <button
+            pButton
+            type="button"
+            class="p-button-sm"
+            severity="secondary"
+            [text]="true"
+            (click)="tourVm.cancelSeedDemo()"
+          >
+            <span pButtonLabel>Cancel</span>
+          </button>
+          <button
+            pButton
+            type="button"
+            class="p-button-sm"
+            severity="help"
+            (click)="tourVm.confirmSeedDemo()"
+          >
+            <span pButtonLabel>Load demo data</span>
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (tourVm.seedingDemo()) {
+      <app-status-message variant="notice" [spaced]="true">
+        Seeding demo data. This calls OpenRouteService and Open-Meteo, please wait...
       </app-status-message>
     }
 
