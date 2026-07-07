@@ -10,8 +10,6 @@ import { TourDetailDto } from '../../api/generated/models/tour-detail-dto';
 import { UpdateTourLogRequest } from '../../api/generated/models/update-tour-log-request';
 import { TourLogsService } from '../../api/generated/services/tour-logs.service';
 import { ToursService } from '../../api/generated/services/tours.service';
-import { INTERMEDIATE_TOUR_DETAILS } from '../shared/intermediate-tours';
-import { INTERMEDIATE_TOUR_LOGS } from '../shared/intermediate-tour-logs';
 
 type TourLogFormMode = 'create' | 'edit';
 type TourLogFormControlName =
@@ -119,7 +117,8 @@ export class TourLogFormViewModel {
       next: (response) => {
         void this.resolveLog(response).then((log) => {
           if (log === null) {
-            this.useIntermediateLog(tourId, logId);
+            this.loadingState.set(false);
+            this.errorMessageState.set('Tour log not found.');
             return;
           }
 
@@ -127,15 +126,11 @@ export class TourLogFormViewModel {
           this.patchForm(log);
           this.loadingState.set(false);
         }).catch(() => {
-          this.useIntermediateLog(tourId, logId);
+          this.loadingState.set(false);
+          this.errorMessageState.set('Tour log not found.');
         });
       },
-      error: (error: unknown) => {
-        if (this.shouldUseIntermediateLog(error)) {
-          this.useIntermediateLog(tourId, logId);
-          return;
-        }
-
+      error: () => {
         this.loadingState.set(false);
         this.errorMessageState.set('Tour log not found.');
       }
@@ -289,18 +284,13 @@ export class TourLogFormViewModel {
         void this.resolveTour(response).then((tour) => {
           this.applyTourTimezone(tour?.timezoneId ?? 'Europe/Vienna');
         }).catch(() => {
-          this.applyFallbackTourTimezone(tourId);
+          this.applyTourTimezone('Europe/Vienna');
         });
       },
       error: () => {
-        this.applyFallbackTourTimezone(tourId);
+        this.applyTourTimezone('Europe/Vienna');
       }
     });
-  }
-
-  private applyFallbackTourTimezone(tourId: number): void {
-    const fallbackTour = INTERMEDIATE_TOUR_DETAILS.find((tour) => tour.id === tourId);
-    this.applyTourTimezone(fallbackTour?.timezoneId ?? 'Europe/Vienna');
   }
 
   private applyTourTimezone(timezoneId: string): void {
@@ -316,31 +306,12 @@ export class TourLogFormViewModel {
     }
   }
 
-  private useIntermediateLog(tourId: number, logId: number): void {
-    const fallbackLog = (INTERMEDIATE_TOUR_LOGS[tourId] ?? []).find((log) => log.id === logId) ?? null;
-    this.loadingState.set(false);
-
-    if (fallbackLog === null) {
-      this.noticeMessageState.set(null);
-      this.errorMessageState.set('Tour log not found.');
-      return;
-    }
-
-    this.patchForm(fallbackLog);
-    this.loadedLogState.set(fallbackLog);
-    this.noticeMessageState.set('The tour log backend is not available yet. Editing intermediate log data.');
-  }
-
   private saveErrorMessage(error: unknown, action: 'created' | 'updated'): string {
     if (error instanceof HttpErrorResponse && error.status === 400) {
       return 'The tour log values are invalid. Please check the highlighted fields.';
     }
 
     return `The tour log could not be ${action}. Please check the backend connection.`;
-  }
-
-  private shouldUseIntermediateLog(error: unknown): boolean {
-    return error instanceof HttpErrorResponse && (error.status === 0 || error.status === 501);
   }
 
   private async resolveLog(response: unknown): Promise<TourLogDto | null> {

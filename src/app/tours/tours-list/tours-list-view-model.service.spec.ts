@@ -57,7 +57,6 @@ describe('ToursListViewModel', () => {
     await flushPromises();
 
     expect(toursApi.searchTours).toHaveBeenCalledWith(undefined);
-    expect(viewModel.dataSource()).toBe('api');
     expect(viewModel.selectedTourId()).toBe(7);
     expect(viewModel.tourRows()).toEqual([
       expect.objectContaining({
@@ -232,17 +231,16 @@ describe('ToursListViewModel', () => {
     vi.useRealTimers();
   });
 
-  it('falls back to intermediate tours when the backend is unavailable', async () => {
+  it('shows an error message when the backend is unavailable', async () => {
     toursApi.searchTours.mockReturnValue(throwError(() => new Error('offline')));
 
     const viewModel = TestBed.inject(ToursListViewModel);
     viewModel.loadTours();
     await flushPromises();
 
-    expect(viewModel.dataSource()).toBe('intermediate');
-    expect(viewModel.noticeMessage()).toContain('tour backend is not available');
     expect(viewModel.loading()).toBe(false);
-    expect(viewModel.tourRows().length).toBeGreaterThan(0);
+    expect(viewModel.errorMessage()).toContain('could not be loaded');
+    expect(viewModel.tourRows()).toHaveLength(0);
   });
 });
 

@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { DestroyRef, computed, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, Validators } from '@angular/forms';
@@ -11,7 +10,6 @@ import { TimezoneSuggestionDto } from '../../api/generated/models/timezone-sugge
 import { TourDetailDto } from '../../api/generated/models/tour-detail-dto';
 import { ToursService } from '../../api/generated/services/tours.service';
 import { UpdateTourRequest } from '../../api/generated/models/update-tour-request';
-import { INTERMEDIATE_TOUR_DETAILS } from '../shared/intermediate-tours';
 
 type TourTransportType = CreateTourRequest['transportType'];
 type TourFormMode = 'create' | 'edit';
@@ -145,22 +143,19 @@ export class TourFormViewModel {
       next: (response) => {
         void this.resolveTour(response).then((tour) => {
           if (tour === null) {
-            this.useIntermediateTour(tourId);
+            this.loadingState.set(false);
+            this.errorMessageState.set('Tour not found.');
             return;
           }
 
           this.patchForm(tour);
           this.loadingState.set(false);
         }).catch(() => {
-          this.useIntermediateTour(tourId);
+          this.loadingState.set(false);
+          this.errorMessageState.set('Tour not found.');
         });
       },
-      error: (error: unknown) => {
-        if (this.shouldUseIntermediateTour(error)) {
-          this.useIntermediateTour(tourId);
-          return;
-        }
-
+      error: () => {
         this.loadingState.set(false);
         this.errorMessageState.set('Tour not found.');
       }
@@ -414,24 +409,6 @@ export class TourFormViewModel {
       )),
       catchError(() => of<TimezoneSuggestionDto[]>([]))
     );
-  }
-
-  private useIntermediateTour(tourId: number): void {
-    const fallbackTour = INTERMEDIATE_TOUR_DETAILS.find((tour) => tour.id === tourId) ?? null;
-    this.loadingState.set(false);
-
-    if (fallbackTour === null) {
-      this.noticeMessageState.set(null);
-      this.errorMessageState.set('Tour not found.');
-      return;
-    }
-
-    this.patchForm(fallbackTour);
-    this.noticeMessageState.set('The tour backend is not available yet. Editing intermediate tour data.');
-  }
-
-  private shouldUseIntermediateTour(error: unknown): boolean {
-    return error instanceof HttpErrorResponse && (error.status === 0 || error.status === 501);
   }
 
   private async resolveTour(response: unknown): Promise<TourDetailDto | null> {

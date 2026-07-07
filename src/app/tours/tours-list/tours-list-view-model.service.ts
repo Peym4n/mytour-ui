@@ -6,7 +6,6 @@ import { SearchTours$Params } from '../../api/generated/fn/tours/search-tours';
 import { ToursService } from '../../api/generated/services/tours.service';
 import { TourSummaryDto } from '../../api/generated/models/tour-summary-dto';
 import { TourSuggestionDto } from '../../api/generated/models/tour-suggestion-dto';
-import { INTERMEDIATE_TOUR_DETAILS, toTourSummary } from '../shared/intermediate-tours';
 import {
   formatDistance,
   formatDuration,
@@ -19,16 +18,13 @@ import {
 } from '../shared/tour-display';
 
 export type TourTransportFilter = TourTransportType | '';
-type TourDataSource = 'api' | 'intermediate';
 type TourLoadResult =
   | { readonly kind: 'api'; readonly tours: TourSummaryDto[] }
-  | { readonly kind: 'unreadable-api' }
-  | { readonly kind: 'unavailable-api' };
+  | { readonly kind: 'error' };
 type TourSuggestionResult =
   | { readonly kind: 'api'; readonly suggestions: TourSuggestionDto[] }
-  | { readonly kind: 'unavailable-api' };
+  | { readonly kind: 'error' };
 
-const INTERMEDIATE_TOURS = INTERMEDIATE_TOUR_DETAILS.map(toTourSummary);
 const SEARCH_DEBOUNCE_MS = 250;
 const SUGGESTION_DEBOUNCE_MS = 180;
 
@@ -60,7 +56,6 @@ export interface TourListRow {
 export class ToursListViewModel {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toursApi = inject(ToursService);
-  private readonly localToursState = signal<TourSummaryDto[]>(INTERMEDIATE_TOURS);
   private readonly toursState = signal<TourSummaryDto[]>([]);
   private readonly selectedTourIdState = signal<number | null>(null);
   private readonly pendingDeleteIdState = signal<number | null>(null);
@@ -70,7 +65,6 @@ export class ToursListViewModel {
   private readonly loadingState = signal(false);
   private readonly errorMessageState = signal<string | null>(null);
   private readonly noticeMessageState = signal<string | null>(null);
-  private readonly dataSourceState = signal<TourDataSource>('api');
   private readonly tourLoadRequests = new Subject<number>();
   private readonly tourSuggestionRequests = new Subject<string>();
 
@@ -83,7 +77,6 @@ export class ToursListViewModel {
   readonly loading = this.loadingState.asReadonly();
   readonly errorMessage = this.errorMessageState.asReadonly();
   readonly noticeMessage = this.noticeMessageState.asReadonly();
-  readonly dataSource = this.dataSourceState.asReadonly();
 
   readonly transportOptions: ReadonlyArray<{ label: string; value: TourTransportFilter }> = [
     { label: 'All types', value: '' },
@@ -202,11 +195,6 @@ export class ToursListViewModel {
       return;
     }
 
-    if (this.dataSourceState() === 'intermediate') {
-      this.deleteLocalTour(tourId);
-      return;
-    }
-
     this.loadingState.set(true);
     this.errorMessageState.set(null);
 
@@ -254,14 +242,14 @@ export class ToursListViewModel {
       switchMap((response) => from(this.resolveTours(response)).pipe(
         map((tours): TourLoadResult => {
           if (tours === null) {
-            return { kind: 'unreadable-api' };
+            return { kind: 'error' };
           }
 
           return { kind: 'api', tours };
         }),
-        catchError(() => of<TourLoadResult>({ kind: 'unreadable-api' }))
+        catchError(() => of<TourLoadResult>({ kind: 'error' }))
       )),
-      catchError(() => of<TourLoadResult>({ kind: 'unavailable-api' }))
+      catchError(() => of<TourLoadResult>({ kind: 'error' }))
     );
   }
 
@@ -271,99 +259,29 @@ export class ToursListViewModel {
       return of<TourSuggestionResult>({ kind: 'api', suggestions: [] });
     }
 
-    if (this.dataSourceState() === 'intermediate') {
-      return of<TourSuggestionResult>({
-        kind: 'api',
-        suggestions: this.localTourSuggestions(trimmedQuery)
-      });
-    }
-
     return this.toursApi.suggestTours({ q: trimmedQuery, limit: 6 }).pipe(
       switchMap((response) => from(this.resolveSuggestions<TourSuggestionDto>(response)).pipe(
         map((suggestions): TourSuggestionResult => ({
           kind: 'api',
           suggestions: suggestions ?? []
         })),
-        catchError(() => of<TourSuggestionResult>({ kind: 'unavailable-api' }))
+        catchError(() => of<TourSuggestionResult>({ kind: 'error' }))
       )),
-      catchError(() => of<TourSuggestionResult>({ kind: 'unavailable-api' }))
+      catchError(() => of<TourSuggestionResult>({ kind: 'error' }))
     );
-  }
-
-  private localTourSuggestions(query: string): TourSuggestionDto[] {
-    const normalizedQuery = query.toLowerCase();
-    return this.filterLocalTours()
-      .filter((tour) => [
-        tour.name,
-        tour.startLocation,
-        tour.endLocation,
-        tour.computedAttributes?.popularityLabel,
-        tour.computedAttributes?.childFriendlinessLabel
-      ]
-        .filter((value): value is string => typeof value === 'string')
-        .some((value) => value.toLowerCase().includes(normalizedQuery)))
-      .slice(0, 6)
-      .map((tour) => ({
-        tourId: tour.id,
-        label: tour.name,
-        route: routeLabel(tour),
-        matchedText: routeLabel(tour)
-      }));
   }
 
   private applyLoadResult(result: TourLoadResult): void {
     if (result.kind === 'api') {
-      this.dataSourceState.set('api');
       this.noticeMessageState.set(null);
       this.applyTours(result.tours);
       this.loadingState.set(false);
       return;
     }
 
-    if (result.kind === 'unreadable-api') {
-      this.useIntermediateTours('The API response is not readable by the generated client yet. Showing intermediate tour data.');
-      return;
-    }
-
-    this.useIntermediateTours('The tour backend is not available yet. Showing intermediate tour data.');
-  }
-
-  private useIntermediateTours(message: string): void {
-    this.dataSourceState.set('intermediate');
-    this.noticeMessageState.set(message);
-    this.applyTours(this.filterLocalTours());
+    this.applyTours([]);
     this.loadingState.set(false);
-  }
-
-  private deleteLocalTour(tourId: number): void {
-    this.loadingState.set(true);
-    this.localToursState.update((tours) => tours.filter((tour) => tour.id !== tourId));
-    this.pendingDeleteIdState.set(null);
-    this.noticeMessageState.set('Tour removed from the intermediate list.');
-    this.applyTours(this.filterLocalTours());
-    this.loadingState.set(false);
-  }
-
-  private filterLocalTours(): TourSummaryDto[] {
-    const query = this.searchQueryState().trim().toLowerCase();
-    const transportType = this.transportFilterState();
-
-    return this.localToursState().filter((tour) => {
-      const matchesTransport = transportType === '' || tour.transportType === transportType;
-      const searchableText = [
-        tour.name,
-        tour.startLocation,
-        tour.endLocation,
-        tour.transportType,
-        tour.computedAttributes?.popularityLabel,
-        tour.computedAttributes?.childFriendlinessLabel
-      ]
-        .filter((value): value is string => typeof value === 'string')
-        .join(' ')
-        .toLowerCase();
-
-      return matchesTransport && (query.length === 0 || searchableText.includes(query));
-    });
+    this.errorMessageState.set('Tours could not be loaded. Please check the backend connection.');
   }
 
   private applyTours(tours: TourSummaryDto[]): void {

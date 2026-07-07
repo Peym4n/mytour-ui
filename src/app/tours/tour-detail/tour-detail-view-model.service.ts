@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { take } from 'rxjs';
@@ -8,8 +7,6 @@ import { TourLogWeatherDto } from '../../api/generated/models/tour-log-weather-d
 import { TourLogsService } from '../../api/generated/services/tour-logs.service';
 import { TourDetailDto } from '../../api/generated/models/tour-detail-dto';
 import { ToursService } from '../../api/generated/services/tours.service';
-import { INTERMEDIATE_TOUR_LOGS } from '../shared/intermediate-tour-logs';
-import { INTERMEDIATE_TOUR_DETAILS } from '../shared/intermediate-tours';
 import {
   formatBytes,
   formatCoordinate,
@@ -148,7 +145,8 @@ export class TourDetailViewModel {
       next: (response) => {
         void this.resolveTour(response).then((tour) => {
           if (tour === null) {
-            this.useIntermediateTour(tourId);
+            this.loadingState.set(false);
+            this.errorMessageState.set('Tour not found.');
             return;
           }
 
@@ -156,15 +154,11 @@ export class TourDetailViewModel {
           this.loadingState.set(false);
           this.loadLogs(tourId);
         }).catch(() => {
-          this.useIntermediateTour(tourId);
+          this.loadingState.set(false);
+          this.errorMessageState.set('Tour not found.');
         });
       },
-      error: (error: unknown) => {
-        if (this.shouldUseIntermediateTour(error)) {
-          this.useIntermediateTour(tourId);
-          return;
-        }
-
+      error: () => {
         this.loadingState.set(false);
         this.errorMessageState.set('Tour not found.');
       }
@@ -235,14 +229,7 @@ export class TourDetailViewModel {
         this.deletingLogIdState.set(null);
         this.noticeMessageState.set('Tour log deleted.');
       },
-      error: (error: unknown) => {
-        if (this.shouldUseIntermediateTour(error)) {
-          this.removeLog(logId);
-          this.deletingLogIdState.set(null);
-          this.noticeMessageState.set('Backend unavailable. Removed this log from the intermediate view only.');
-          return;
-        }
-
+      error: () => {
         this.deletingLogIdState.set(null);
         this.logsErrorMessageState.set('Tour log could not be deleted.');
       }
@@ -277,32 +264,11 @@ export class TourDetailViewModel {
           this.logsErrorMessageState.set('Weather snapshot could not be refreshed.');
         });
       },
-      error: (error: unknown) => {
+      error: () => {
         this.refreshingWeatherLogIdState.set(null);
-        if (this.shouldUseIntermediateTour(error)) {
-          this.logsErrorMessageState.set('Weather refresh requires the tour backend.');
-          return;
-        }
-
         this.logsErrorMessageState.set('Weather snapshot could not be refreshed.');
       }
     });
-  }
-
-  private useIntermediateTour(tourId: number): void {
-    const fallbackTour = INTERMEDIATE_TOUR_DETAILS.find((tour) => tour.id === tourId) ?? null;
-
-    this.tourState.set(fallbackTour);
-    this.loadingState.set(false);
-
-    if (fallbackTour === null) {
-      this.noticeMessageState.set(null);
-      this.errorMessageState.set('Tour not found.');
-      return;
-    }
-
-    this.noticeMessageState.set('The tour backend is not available yet. Showing intermediate tour data.');
-    this.useIntermediateLogs(tourId);
   }
 
   private loadLogs(tourId: number): void {
@@ -313,36 +279,23 @@ export class TourDetailViewModel {
       next: (response) => {
         void this.resolveLogs(response).then((logs) => {
           if (logs === null) {
-            this.useIntermediateLogs(tourId);
+            this.logsLoadingState.set(false);
+            this.logsErrorMessageState.set('Tour logs could not be loaded.');
             return;
           }
 
           this.logsState.set(this.sortLogs(logs));
           this.logsLoadingState.set(false);
         }).catch(() => {
-          this.useIntermediateLogs(tourId);
+          this.logsLoadingState.set(false);
+          this.logsErrorMessageState.set('Tour logs could not be loaded.');
         });
       },
-      error: (error: unknown) => {
-        if (this.shouldUseIntermediateTour(error)) {
-          this.useIntermediateLogs(tourId);
-          return;
-        }
-
+      error: () => {
         this.logsLoadingState.set(false);
         this.logsErrorMessageState.set('Tour logs could not be loaded.');
       }
     });
-  }
-
-  private useIntermediateLogs(tourId: number): void {
-    this.logsState.set(this.sortLogs(INTERMEDIATE_TOUR_LOGS[tourId] ?? []));
-    this.logsLoadingState.set(false);
-    this.logsErrorMessageState.set(null);
-  }
-
-  private shouldUseIntermediateTour(error: unknown): boolean {
-    return error instanceof HttpErrorResponse && (error.status === 0 || error.status === 501);
   }
 
   private async resolveTour(response: unknown): Promise<TourDetailDto | null> {
