@@ -7,6 +7,8 @@ export type { UpdateTour$Params as UpdateTour$Params } from './fn/tours/update-t
 export { updateTour as updateTour } from './fn/tours/update-tour';
 export type { DeleteTour$Params as DeleteTour$Params } from './fn/tours/delete-tour';
 export { deleteTour as deleteTour } from './fn/tours/delete-tour';
+export type { GetCoverImage$Params as GetCoverImage$Params } from './fn/tours/get-cover-image';
+export { getCoverImage as getCoverImage } from './fn/tours/get-cover-image';
 export type { UploadCoverImage$Params as UploadCoverImage$Params } from './fn/tours/upload-cover-image';
 export { uploadCoverImage as uploadCoverImage } from './fn/tours/upload-cover-image';
 export type { DeleteCoverImage$Params as DeleteCoverImage$Params } from './fn/tours/delete-cover-image';

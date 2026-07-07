@@ -19,6 +19,8 @@ import { deleteTour } from '../fn/tours/delete-tour';
 import { DeleteTour$Params } from '../fn/tours/delete-tour';
 import { exportTours } from '../fn/tours/export-tours';
 import { ExportTours$Params } from '../fn/tours/export-tours';
+import { getCoverImage } from '../fn/tours/get-cover-image';
+import { GetCoverImage$Params } from '../fn/tours/get-cover-image';
 import { getTour } from '../fn/tours/get-tour';
 import { GetTour$Params } from '../fn/tours/get-tour';
 import { ImportResultDto } from '../models/import-result-dto';
@@ -158,6 +160,41 @@ export class ToursService extends BaseService {
     const resp = this.deleteTour$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `getCoverImage()` */
+  static readonly GetCoverImagePath = '/api/tours/{tourId}/cover-image';
+
+  /**
+   * Download the one cover image for a tour.
+   *
+   *
+   *
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCoverImage()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCoverImage$Response(params: GetCoverImage$Params, context?: HttpContext): Observable<StrictHttpResponse<Blob>> {
+    const obs = getCoverImage(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * Download the one cover image for a tour.
+   *
+   *
+   *
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCoverImage$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCoverImage(params: GetCoverImage$Params, context?: HttpContext): Observable<Blob> {
+    const resp = this.getCoverImage$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<Blob>): Blob => r.body)
     );
   }
 
