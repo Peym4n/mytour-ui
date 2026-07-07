@@ -147,6 +147,8 @@ Source file: `mytour-api/database-class-diagram.puml`
 
 The diagram documents the persistent domain classes, their columns, enum types, and relationships. It intentionally keeps detailed SQL constraints and indexes in the Flyway migration so the schema source of truth remains executable.
 
+![Database class diagram](diagrams/database-class-diagram.png)
+
 ### Full-Text Search Sequence Diagram
 
 Source file: `mytour-api/full-text-search-sequence.puml`
