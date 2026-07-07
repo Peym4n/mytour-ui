@@ -2,7 +2,7 @@
 
 Angular frontend for the MyTour project.
 
-This app uses Angular 21, Tailwind CSS, and PrimeNG. The current UI includes a root navigation shell and a backend health view that calls the Spring Boot API.
+This app uses Angular 21, Tailwind CSS, PrimeNG, generated OpenAPI clients, and Leaflet. The UI includes authentication, tour CRUD, tour logs, route maps, cover-image upload, search/filtering, import/export, demo data seeding, and automatic weather snapshot display.
 
 ## Configuration
 
@@ -11,7 +11,7 @@ The app generates Angular environment files before `npm start` and `npm run buil
 Set `API_URL` to point the frontend at the backend API:
 
 ```bash
-API_URL=http://localhost:8282
+API_URL=http://localhost:8080
 ```
 
 If `API_URL` is not set, it defaults to `http://localhost:8080`.
@@ -37,16 +37,18 @@ Open `http://localhost:4200`.
 The Spring Boot backend is the source of truth for API DTOs and endpoints. Generate the Angular API client from the backend OpenAPI contract:
 
 ```bash
-API_URL=http://localhost:8282 npm run sync-api
+API_URL=http://localhost:8080 npm run sync-api
 ```
 
 PowerShell:
 
 ```powershell
-$env:API_URL='http://localhost:8282'; npm run sync-api
+$env:API_URL='http://localhost:8080'; npm run sync-api
 ```
 
 This writes `openapi.json` and generated code in `src/app/api/generated`.
+
+The generated `TourRouteDto.routeGeometry` type is a JSON object map. It must stay synchronized with the backend so Leaflet receives the actual OpenRouteService GeoJSON `FeatureCollection` instead of an internal server-side JSON-tree representation.
 
 Useful individual commands:
 
@@ -71,8 +73,8 @@ That starts PostgreSQL, the Spring Boot backend, and this Angular frontend. The 
 Default URLs:
 
 * Frontend: `http://localhost:4200`
-* Backend API: `http://localhost:8282`
-* Backend health check: `http://localhost:8282/actuator/health`
+* Backend API: `http://localhost:8080`
+* Backend health check: `http://localhost:8080/actuator/health`
 
 ## Building
 
@@ -84,6 +86,8 @@ npm run build
 
 The build output is written to `dist/`.
 
+Latest verification: `npm run build` passed on 2026-07-07 after API sync. The build currently reports budget warnings for the initial bundle size and `tours-list.scss`; these are warnings, not compile failures.
+
 ## Tests
 
 Run unit tests:
@@ -91,3 +95,5 @@ Run unit tests:
 ```bash
 npm test
 ```
+
+Latest verification: 30 frontend tests across 9 spec files passed on 2026-07-07.

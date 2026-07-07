@@ -44,7 +44,7 @@ The frontend currently provides the generated API client base URL from Angular e
 provideApiConfiguration(environment.apiUrl)
 ```
 
-This is important because Docker Compose exposes the backend on `localhost:8282`, while the backend container itself still listens on port `8080`.
+This is important because the frontend should not hard-code the backend URL; it reads the API base URL from the generated Angular environment.
 
 ## Why This Is Needed
 
@@ -172,10 +172,10 @@ docker compose up --build
 In the current Docker Compose setup, the backend is exposed on:
 
 ```text
-http://localhost:8282
+http://localhost:8080
 ```
 
-The container still listens internally on port `8080`, but the host port is `8282`.
+The container listens internally on port `8080`, and the example environment exposes the same port on the host.
 
 You can verify the running services with:
 
@@ -186,7 +186,7 @@ docker compose ps
 Expected important mapping:
 
 ```text
-mytour-api-app   0.0.0.0:8282->8080/tcp
+mytour-api-app   0.0.0.0:8080->8080/tcp
 ```
 
 Alternative local backend run without Docker:
@@ -214,13 +214,13 @@ http://localhost:8080
 Open Swagger UI:
 
 ```text
-http://localhost:8282/swagger-ui.html
+http://localhost:8080/swagger-ui.html
 ```
 
 Depending on Springdoc/Spring Boot routing, this may redirect to:
 
 ```text
-http://localhost:8282/swagger-ui/index.html
+http://localhost:8080/swagger-ui/index.html
 ```
 
 Use Swagger UI to verify:
@@ -240,7 +240,7 @@ If something is wrong in Swagger UI, fix the backend DTO/controller first.
 The raw OpenAPI specification is available at:
 
 ```text
-http://localhost:8282/v3/api-docs
+http://localhost:8080/v3/api-docs
 ```
 
 For the manual student-project workflow, save it into the Angular project:
@@ -252,28 +252,28 @@ mytour-ui/openapi.json
 Manual browser approach:
 
 1. Start the backend.
-2. Open `http://localhost:8282/v3/api-docs`.
+2. Open `http://localhost:8080/v3/api-docs`.
 3. Save the JSON response as `mytour-ui/openapi.json`.
 
 The project already has a cross-platform Node download script, so the preferred command is:
 
 ```bash
 cd mytour-ui
-API_URL=http://localhost:8282 npm run download-api
+API_URL=http://localhost:8080 npm run download-api
 ```
 
 PowerShell:
 
 ```powershell
 cd mytour-ui
-$env:API_URL='http://localhost:8282'; npm run download-api
+$env:API_URL='http://localhost:8080'; npm run download-api
 ```
 
 Manual PowerShell approach:
 
 ```powershell
 Invoke-WebRequest `
-  -Uri http://localhost:8282/v3/api-docs `
+  -Uri http://localhost:8080/v3/api-docs `
   -OutFile mytour-ui/openapi.json
 ```
 
@@ -336,14 +336,14 @@ Run:
 
 ```bash
 cd mytour-ui
-API_URL=http://localhost:8282 npm run sync-api
+API_URL=http://localhost:8080 npm run sync-api
 ```
 
 PowerShell:
 
 ```powershell
 cd mytour-ui
-$env:API_URL='http://localhost:8282'; npm run sync-api
+$env:API_URL='http://localhost:8080'; npm run sync-api
 ```
 
 Expected result:
@@ -449,8 +449,8 @@ This is the recommended manual workflow for this project.
 
 1. Change backend controller/DTO code.
 2. Start the stack with `docker compose up --build` from `mytour-api`.
-3. Check Swagger UI at `http://localhost:8282/swagger-ui.html`.
-4. Run `API_URL=http://localhost:8282 npm run sync-api` from `mytour-ui`.
+3. Check Swagger UI at `http://localhost:8080/swagger-ui.html`.
+4. Run `API_URL=http://localhost:8080 npm run sync-api` from `mytour-ui`.
 5. Confirm `mytour-ui/openapi.json` changed as expected.
 6. Confirm generated code under `mytour-ui/src/app/api/generated` changed as expected.
 7. Fix Angular compile errors caused by API changes.
@@ -493,13 +493,13 @@ OPENAPI_OUTPUT
 Typical usage:
 
 ```bash
-API_URL=http://localhost:8282 npm run sync-api
+API_URL=http://localhost:8080 npm run sync-api
 ```
 
 PowerShell:
 
 ```powershell
-$env:API_URL='http://localhost:8282'; npm run sync-api
+$env:API_URL='http://localhost:8080'; npm run sync-api
 ```
 
 ## Backend Rules for Good OpenAPI Output
@@ -623,26 +623,26 @@ An API sync is complete when:
 With Docker Compose running:
 
 ```bash
-curl http://localhost:8282/actuator/health
-curl http://localhost:8282/v3/api-docs
+curl http://localhost:8080/actuator/health
+curl http://localhost:8080/v3/api-docs
 ```
 
 From `mytour-ui` in Git Bash:
 
 ```bash
-API_URL=http://localhost:8282 npm run sync-api
+API_URL=http://localhost:8080 npm run sync-api
 npm run build
 ```
 
 From `mytour-ui` in PowerShell:
 
 ```powershell
-$env:API_URL='http://localhost:8282'; npm run sync-api
+$env:API_URL='http://localhost:8080'; npm run sync-api
 npm run build
 ```
 
 Expected generation summary at the time this guide was updated:
 
 ```text
-Generation from openapi.json finished with 25 models and 3 services.
+Generation from openapi.json finished with 28 models and 4 services.
 ```

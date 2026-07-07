@@ -92,7 +92,7 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [x] Must have: uses configuration, not code, at minimum for the DB connection string.
 - [x] Must have: integrates the OpenRouteServices.org API and Leaflet.
 - [x] Must have: implements at least 20 unit tests.
-  - Backend test suite currently passes with 49 tests after auth-backed ownership and login/registration.
+  - Backend test suite currently passes with 124 tests after the route-geometry serialization regression test and low-value test cleanup.
 - [x] GUI: correct data binding between UI elements and view model properties.
 - [ ] GUI: UI responds to window size changes.
 - [x] GUI: defines a reusable UI component.
@@ -140,32 +140,18 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
   - Error paths log at WARN (auth failures, conflicts, upstream fallbacks) or ERROR (file I/O failures).
   - All API clients log request success (INFO with latency) and failure (WARN with status/failure class).
 - [x] Non-functional: quality of unit tests (usefulness, no duplicates).
-  - 68 unit tests across 15 test classes covering all services, clients, exception handling, and architecture rules.
-  - `TourSearchIndexTest` (19 tests): blank query, null tour, name/description/log comment/weather/computed attribute matching, prefix matching, diacritic normalization, case insensitivity, multi-term AND logic, rating filter with max across logs, remove/replace lifecycle.
-  - `TourImportServiceTest` (20 tests): null request, schema version validation, empty/null tour list, null tour/route/logs fields, route coordinate mismatch, negative distance, zero duration, unsafe/absolute cover image paths, blank content type, negative size, multiple errors at once, valid import success path.
-  - `AuthServiceTest` (4 tests): successful registration, duplicate username conflict, invalid password, current user retrieval.
-  - `TourAttributeCalculatorTest` (6 tests): all popularity and child-friendliness categories.
-  - `PersistentOwnershipServiceTest` (3 tests): ownership-scoped tour lookup, log listing, delete guard.
-  - `CoverImageStorageServiceTest` (3 tests): store with path sanitization, content type rejection, path traversal rejection.
-  - `WeatherSnapshotServiceTest` (2 tests): client delegation with midpoint, local fallback on upstream failure.
-  - `RouteCalculationServiceTest` (2 tests): fallback without API key, client delegation with API key.
-  - `LocationSuggestionServiceTest` (2 tests): local fallback, minimum query length.
-  - `OpenMeteoWeatherClientTest` (2 tests): archive lookup, forecast fallback.
-  - `OpenRouteServiceDirectionsClientTest` (1 test): POST request with coordinates and GeoJSON mapping.
-  - `OpenRouteServiceGeocodingClientTest` (1 test): autocomplete with boundary country filter.
-  - `LayerDependencyRulesTest` (1 test): enforces layer import rules across all production code.
-  - `ApiErrorResponseFactoryTest` (1 test): consistent error response structure.
-  - `TimezoneSuggestionServiceTest` (1 test): preferred matches and default ordering.
-  - No duplicate tests; each test class targets a single component with distinct scenarios.
-- [ ] Protocol: describes app architecture, including layers, layer contents/functionality, and class diagrams.
-- [ ] Protocol: describes use cases, including use-case and sequence diagrams.
-- [ ] Protocol: describes UX and includes wireframes.
-- [ ] Protocol: describes library decisions where applicable and lessons learned.
-- [ ] Protocol: describes implemented design pattern.
-- [ ] Protocol: describes unit testing decisions.
-- [ ] Protocol: describes unique feature.
-- [ ] Protocol: contains tracked time.
-- [ ] Protocol: contains link to Git.
+  - Backend: 124 focused tests across 22 test classes covering controllers, services, clients, mapping, DTO serialization, exception handling, import/export, ownership, SQL-injection-like search input, and architecture rules.
+  - Frontend: 30 focused tests across 9 spec files covering auth session behavior, app/health smoke paths, tour display helpers, list/detail/form/log ViewModels, location/search flows, cover-image upload, and Leaflet map facade safety.
+  - Low-value backend tests that only repeated trivial framework behavior were removed; the remaining tests target distinct behavior or a specific regression risk.
+- [x] Protocol: describes app architecture, including layers, layer contents/functionality, and class diagrams.
+- [x] Protocol: describes use cases, including use-case and sequence diagrams.
+- [x] Protocol: describes UX and includes wireframes.
+- [x] Protocol: describes library decisions where applicable and lessons learned.
+- [x] Protocol: describes implemented design pattern.
+- [x] Protocol: describes unit testing decisions.
+- [x] Protocol: describes unique feature.
+- [x] Protocol: contains tracked time.
+- [x] Protocol: contains link to Git.
 
 Implementation tasks:
 
@@ -285,18 +271,26 @@ Implementation tasks:
 26. [x] Verify layer rules: each layer only calls its own layer or the immediate layer below.
    - Added a backend layer-rule audit and an automated source-import architecture test for production code.
    - Fixed a client-to-service dependency by introducing `RouteDirectionsResult` in the client layer and mapping it to `CalculatedRoute` inside `RouteCalculationService`.
-27. [ ] Complete protocol architecture documentation: class diagram, use-case diagram, sequence diagram for full-text search, and layer description.
-   - Database/class diagram draft exists, but full protocol documentation is not complete yet.
-28. [ ] Complete protocol sections for library decisions, lessons learned, design pattern, unit test decisions, unique feature, tracked time, and Git link.
+27. [x] Complete protocol architecture documentation inputs: class diagram, use-case diagram, sequence diagram for full-text search, and layer description.
+   - `database-class-diagram.puml` was checked against `V1__init_schema.sql` on 2026-07-07; persistent columns and relationships match the DB init migration.
+   - `use-case.puml` now covers the final implemented feature set.
+   - `full-text-search-sequence.puml` documents the current search flow through Angular ViewModel, generated API client, controller, service, repository, mapper, and `TourSearchIndex`.
+   - Layer rules are documented in `mytour-api/docs/layer-rules.md` and enforced by `LayerDependencyRulesTest`.
+28. [x] Complete protocol sections for library decisions, lessons learned, design pattern, unit test decisions, unique feature, tracked time, and Git link.
+   - `docs/final-protocol.md` now contains the final protocol draft and covers architecture, UML sources, UX/wireframes, library decisions, design pattern, unit testing, unique feature, and lessons learned.
+   - Time tracking is included in the final protocol.
+   - Git repository links are confirmed in the protocol.
+   - Remaining input before PDF export: add final screenshots under `docs/final-screenshots/`.
 29. [x] Run backend unit tests and fix failures.
-   - Backend tests passed for Task 29 on 2026-07-04 with 55 tests, 0 failures, and 0 errors.
-   - No backend fixes were needed during this pass; final full-stack verification still belongs to the final packaging pass.
-30. [ ] Run frontend build/tests and fix failures.
-   - Frontend build and tests passed for the autocomplete/search/weather/upload corrections on 2026-07-04 with 30 tests.
+   - Backend tests passed for Task 29 on 2026-07-07 with 124 tests, 0 failures, and 0 errors.
+   - The suite includes the `routeGeometry` serialization regression test that verifies GeoJSON features/coordinates are returned instead of JsonNode getter metadata.
+30. [x] Run frontend build/tests and fix failures.
+   - Frontend tests passed on 2026-07-07 with 30 tests across 9 spec files.
+   - Frontend build passed on 2026-07-07 after syncing the backend OpenAPI contract and regenerating the Angular API client.
    - `npm run build` still reports budget warnings: initial bundle is 528.17 kB instead of 500.00 kB, and `tours-list.scss` is 4.12 kB instead of 4.00 kB.
 31. [ ] Run a clean end-to-end manual test from empty database: register, login, create tour, fetch route/map, add logs, fetch weather snapshot, search, filter, import, export, edit, delete.
 32. [ ] Confirm final must-haves one by one against the checklist before packaging.
-33. [ ] Update README with final setup: database, environment variables, external image directory, backend start, frontend start, tests, and known assumptions.
-   - Frontend README has been updated for current setup and API sync; final full-stack README still needs the later persistence/image/auth details.
+33. [x] Update README with final setup: database, environment variables, external image directory, backend start, frontend start, tests, and known assumptions.
+   - Backend and frontend READMEs document Docker Compose, local starts, API sync, tests, image storage, external API keys/fallbacks, and current known build warnings.
 34. [ ] Prepare final presentation flow with the working solution already started locally.
 35. [ ] Create the final zip/source snapshot and verify it contains the final code, README, and protocol PDF.
