@@ -86,7 +86,8 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [x] Must have: implements a layer-based architecture (UI/BL/DAL).
 - [x] Must have: implements at least one design pattern.
 - [x] Must have: uses a Postgres database for storing tour data.
-- [ ] Must have: does not allow for SQL injection.
+- [x] Must have: does not allow for SQL injection.
+  - All database access uses Spring Data JPA derived query methods with automatic parameter binding. No `@Query`, native queries, or `EntityManager.createQuery` usage.
 - [x] Must have: uses an OR-mapping library.
 - [x] Must have: uses configuration, not code, at minimum for the DB connection string.
 - [x] Must have: integrates the OpenRouteServices.org API and Leaflet.
@@ -107,7 +108,7 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
 - [x] Tour Logs: show all logs of a selected tour with all log attributes in a list view.
 - [x] Tour Logs: validates user input with no crash on wrong input.
 - [x] Full-Text Search: search performs full-text search in tours, tour logs, and computed attributes.
-  - Active intermediate search tokenizes tour fields, log fields, weather text, and computed labels through `IntermediateTourSearchIndex`.
+  - Active search tokenizes tour fields, log fields, weather text, and computed labels through `TourSearchIndex`.
   - Search tokens now support prefix matching, so typing the first characters of a word can already return matching tours.
   - `GET /api/tours/suggestions` exposes selectable tour-search suggestions for the Angular search field.
   - PostgreSQL schema already includes GIN `to_tsvector` indexes for tours, tour logs, and tour log weather.
@@ -123,14 +124,39 @@ Checklist requirements from `TourPlanner_Checklist_Final.xlsx`:
   - Tour logs get an automatic weather snapshot through the backend weather snapshot service.
   - Open-Meteo archive data is used for historical hourly snapshots, with forecast-hourly fallback for recent/future log hours.
   - The tour detail UI shows provider, dataset, observed/fetched time, lookup coordinate, temperature, humidity, precipitation, wind, and a refresh action.
-- [ ] Non-functional: layers only call methods of the immediate layer below or own methods.
-- [ ] Non-functional: layers define their own exceptions, no implementation-specific exceptions escape.
+- [x] Non-functional: layers only call methods of the immediate layer below or own methods.
+  - Controllers call services only. Services call repositories, clients, mappers, and other services. No layer-skipping imports (controllers never import from `repository`, `domain`, `client`, or `mapper`).
+- [x] Non-functional: layers define their own exceptions, no implementation-specific exceptions escape.
+  - Custom exceptions: `ConflictException`, `UnauthorizedException`, `FileStorageException`, `ImportValidationException`, `UpstreamServiceException`.
+  - Services throw custom exceptions instead of Spring Web's `ResponseStatusException` or Spring Data's `DataIntegrityViolationException`.
+  - `ApiExceptionHandler` translates all exceptions to `ApiErrorResponse` DTOs.
 - [x] Non-functional: uses the OpenRouteServices.org Directions API for tour retrieval.
 - [x] Non-functional: uses Leaflet for the map.
 - [x] Non-functional: all tour data, maybe except image data, is stored in the database.
 - [x] Non-functional: all configuration information is stored in configuration, not in code.
-- [ ] Non-functional: logs exceptions, errors, and other useful technical information.
-- [ ] Non-functional: quality of unit tests (usefulness, no duplicates).
+- [x] Non-functional: logs exceptions, errors, and other useful technical information.
+  - `ApiExceptionHandler` logs all exceptions at appropriate levels (ERROR for 5xx, WARN for upstream failures, DEBUG for 4xx).
+  - All services log successful operations at INFO (tour CRUD, log CRUD, imports, route refresh, weather refresh, cover image operations).
+  - Error paths log at WARN (auth failures, conflicts, upstream fallbacks) or ERROR (file I/O failures).
+  - All API clients log request success (INFO with latency) and failure (WARN with status/failure class).
+- [x] Non-functional: quality of unit tests (usefulness, no duplicates).
+  - 68 unit tests across 15 test classes covering all services, clients, exception handling, and architecture rules.
+  - `TourSearchIndexTest` (19 tests): blank query, null tour, name/description/log comment/weather/computed attribute matching, prefix matching, diacritic normalization, case insensitivity, multi-term AND logic, rating filter with max across logs, remove/replace lifecycle.
+  - `TourImportServiceTest` (20 tests): null request, schema version validation, empty/null tour list, null tour/route/logs fields, route coordinate mismatch, negative distance, zero duration, unsafe/absolute cover image paths, blank content type, negative size, multiple errors at once, valid import success path.
+  - `AuthServiceTest` (4 tests): successful registration, duplicate username conflict, invalid password, current user retrieval.
+  - `TourAttributeCalculatorTest` (6 tests): all popularity and child-friendliness categories.
+  - `PersistentOwnershipServiceTest` (3 tests): ownership-scoped tour lookup, log listing, delete guard.
+  - `CoverImageStorageServiceTest` (3 tests): store with path sanitization, content type rejection, path traversal rejection.
+  - `WeatherSnapshotServiceTest` (2 tests): client delegation with midpoint, local fallback on upstream failure.
+  - `RouteCalculationServiceTest` (2 tests): fallback without API key, client delegation with API key.
+  - `LocationSuggestionServiceTest` (2 tests): local fallback, minimum query length.
+  - `OpenMeteoWeatherClientTest` (2 tests): archive lookup, forecast fallback.
+  - `OpenRouteServiceDirectionsClientTest` (1 test): POST request with coordinates and GeoJSON mapping.
+  - `OpenRouteServiceGeocodingClientTest` (1 test): autocomplete with boundary country filter.
+  - `LayerDependencyRulesTest` (1 test): enforces layer import rules across all production code.
+  - `ApiErrorResponseFactoryTest` (1 test): consistent error response structure.
+  - `TimezoneSuggestionServiceTest` (1 test): preferred matches and default ordering.
+  - No duplicate tests; each test class targets a single component with distinct scenarios.
 - [ ] Protocol: describes app architecture, including layers, layer contents/functionality, and class diagrams.
 - [ ] Protocol: describes use cases, including use-case and sequence diagrams.
 - [ ] Protocol: describes UX and includes wireframes.
