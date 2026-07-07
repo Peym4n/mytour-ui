@@ -13,7 +13,6 @@ export type { ImportedTourDto } from './models/imported-tour-dto';
 export type { ImportedTourLogDto } from './models/imported-tour-log-dto';
 export type { ImportedWeatherSnapshotDto } from './models/imported-weather-snapshot-dto';
 export type { ImportResultDto } from './models/import-result-dto';
-export type { JsonNode } from './models/json-node';
 export type { LocationSuggestionDto } from './models/location-suggestion-dto';
 export type { LoginRequest } from './models/login-request';
 export type { RegisterRequest } from './models/register-request';
