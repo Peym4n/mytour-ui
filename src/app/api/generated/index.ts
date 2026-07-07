@@ -12,6 +12,7 @@ export type { CoordinateDto } from './models/coordinate-dto';
 export type { CoverImageDto } from './models/cover-image-dto';
 export type { CreateTourLogRequest } from './models/create-tour-log-request';
 export type { CreateTourRequest } from './models/create-tour-request';
+export type { DemoDataResultDto } from './models/demo-data-result-dto';
 export type { ExportedTourDto } from './models/exported-tour-dto';
 export type { ImportedTourDto } from './models/imported-tour-dto';
 export type { ImportedTourLogDto } from './models/imported-tour-log-dto';
@@ -37,6 +38,7 @@ export type { UserDto } from './models/user-dto';
 export { BaseService } from './base-service';
 export { ToursService } from './services/tours.service';
 export { TourLogsService } from './services/tour-logs.service';
+export { DemoDataService } from './services/demo-data.service';
 export { AuthenticationService } from './services/authentication.service';
 
 export type { GetTour$Params as GetTour$Params } from './fn/tours/get-tour';
@@ -77,6 +79,8 @@ export type { CreateLog$Params as CreateLog$Params } from './fn/tour-logs/create
 export { createLog as createLog } from './fn/tour-logs/create-log';
 export type { RefreshWeather$Params as RefreshWeather$Params } from './fn/tour-logs/refresh-weather';
 export { refreshWeather as refreshWeather } from './fn/tour-logs/refresh-weather';
+export type { SeedDemoData$Params as SeedDemoData$Params } from './fn/demo-data/seed-demo-data';
+export { seedDemoData as seedDemoData } from './fn/demo-data/seed-demo-data';
 export type { Register$Params as Register$Params } from './fn/authentication/register';
 export { register as register } from './fn/authentication/register';
 export type { Login$Params as Login$Params } from './fn/authentication/login';

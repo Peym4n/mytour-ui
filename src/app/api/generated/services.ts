@@ -3,4 +3,5 @@
 
 export { ToursService } from './services/tours.service';
 export { TourLogsService } from './services/tour-logs.service';
+export { DemoDataService } from './services/demo-data.service';
 export { AuthenticationService } from './services/authentication.service';

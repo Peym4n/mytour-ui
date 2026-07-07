@@ -7,6 +7,7 @@ export type { CoordinateDto } from './models/coordinate-dto';
 export type { CoverImageDto } from './models/cover-image-dto';
 export type { CreateTourLogRequest } from './models/create-tour-log-request';
 export type { CreateTourRequest } from './models/create-tour-request';
+export type { DemoDataResultDto } from './models/demo-data-result-dto';
 export type { ExportedTourDto } from './models/exported-tour-dto';
 export type { ImportedTourDto } from './models/imported-tour-dto';
 export type { ImportedTourLogDto } from './models/imported-tour-log-dto';

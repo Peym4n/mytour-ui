@@ -39,6 +39,8 @@ export type { CreateLog$Params as CreateLog$Params } from './fn/tour-logs/create
 export { createLog as createLog } from './fn/tour-logs/create-log';
 export type { RefreshWeather$Params as RefreshWeather$Params } from './fn/tour-logs/refresh-weather';
 export { refreshWeather as refreshWeather } from './fn/tour-logs/refresh-weather';
+export type { SeedDemoData$Params as SeedDemoData$Params } from './fn/demo-data/seed-demo-data';
+export { seedDemoData as seedDemoData } from './fn/demo-data/seed-demo-data';
 export type { Register$Params as Register$Params } from './fn/authentication/register';
 export { register as register } from './fn/authentication/register';
 export type { Login$Params as Login$Params } from './fn/authentication/login';
